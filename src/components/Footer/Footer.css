@@ -1,0 +1,29 @@
+.footer {
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  padding: var(--spacing-l) var(--spacing-xl);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: var(--spacing-xxl);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-l);
+  flex-wrap: wrap;
+}
+
+.footer a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer a:hover {
+  color: var(--accent-blue);
+}

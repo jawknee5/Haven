@@ -1,0 +1,3 @@
+# ⚠️ DEPRECATED
+
+**Use Instead**: `HAVEN_UNIFIED_DOCUMENTATION_V2.md`

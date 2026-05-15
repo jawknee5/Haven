@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pathway - Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0a1a2f 0%, #0d0f12 50%, #1a0f2e 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 40px 24px;
+      background: linear-gradient(135deg, rgba(26, 30, 36, 0.8), rgba(20, 23, 28, 0.9));
+      border: 1px solid rgba(42, 47, 54, 0.8);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(212, 175, 55, 0.1), 0 0 60px rgba(212, 175, 55, 0.05);
+    }
+
+    .logo-section {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .logo-svg {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 16px;
+      filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.3));
+    }
+
+    .logo-title {
+      font-size: 28px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #d4af37 0%, #f0d66d 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .logo-subtitle {
+      font-size: 13px;
+      color: #a7b0bc;
+      letter-spacing: 1px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(13, 15, 18, 0.6);
+      border: 1px solid rgba(42, 47, 54, 0.6);
+      border-radius: 8px;
+      color: #ffffff;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    input::placeholder {
+      color: rgba(167, 176, 188, 0.5);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #d4af37;
+      background: rgba(13, 15, 18, 0.8);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+    }
+
+    .form-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 24px;
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #d4af37;
+    }
+
+    .checkbox-wrapper label {
+      margin: 0;
+      color: #a7b0bc;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      cursor: pointer;
+    }
+
+    .forgot-link {
+      color: #d4af37;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .forgot-link:hover {
+      color: #f0d66d;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #d4af37 0%, #f0d66d 50%, #d4af37 100%);
+      color: #0a1a2f;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      box-shadow: 0 4px 16px rgba(212, 175, 55, 0.2);
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(212, 175, 55, 0.35);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    .login-btn.loading {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .signup-prompt {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 13px;
+      color: #a7b0bc;
+    }
+
+    .signup-link {
+      color: #d4af37;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .signup-link:hover {
+      color: #f0d66d;
+    }
+
+    .error-message {
+      display: none;
+      padding: 12px 16px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 8px;
+      color: #ff6b6b;
+      font-size: 12px;
+      margin-bottom: 20px;
+      border-left: 3px solid #ef4444;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 24px 0;
+      gap: 16px;
+      font-size: 12px;
+      color: #a7b0bc;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(42, 47, 54, 0.6);
+    }
+
+    .demo-login {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #3b82f6;
+      cursor: pointer;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+
+    .demo-login:hover {
+      background: rgba(59, 130, 246, 0.2);
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .shake {
+      animation: shake 0.3s;
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo-section">
+      <svg class="logo-svg" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="140" cy="100" rx="35" ry="45" fill="#d4af37" opacity="0.9"/>
+        <circle cx="140" cy="60" r="20" fill="#d4af37" opacity="0.9"/>
+        <polygon points="155,60 175,58 160,65" fill="#d4af37" opacity="0.9"/>
+        <path d="M 115 85 Q 80 70 70 100 Q 75 95 90 100 Q 110 90 120 95" fill="#d4af37" opacity="0.9"/>
+        <path d="M 110 90 Q 75 75 60 110 Q 70 100 85 105 Q 105 95 115 100" fill="#f0d66d" opacity="0.8"/>
+        <path d="M 165 85 Q 200 70 210 100 Q 205 95 190 100 Q 170 90 160 95" fill="#e8e8e8" opacity="0.9"/>
+        <path d="M 170 90 Q 205 75 220 110 Q 210 100 195 105 Q 175 95 165 100" fill="#f5f5f5" opacity="0.8"/>
+        <path d="M 140 140 Q 120 160 130 190 Q 140 210 160 205 Q 170 195 165 170 Q 155 150 140 140" stroke="#d4af37" stroke-width="12" fill="none" opacity="0.8" stroke-linecap="round"/>
+        <path d="M 140 140 Q 120 160 130 190 Q 140 210 160 205 Q 170 195 165 170 Q 155 150 140 140" stroke="#e8e8e8" stroke-width="6" fill="none" opacity="0.6" stroke-linecap="round"/>
+        <circle cx="145" cy="55" r="2.5" fill="#0a1a2f"/>
+      </svg>
+      <div class="logo-title">PATHWAY</div>
+      <div class="logo-subtitle">GENESIS</div>
+    </div>
+
+    <div class="error-message" id="error-message"></div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required />
+      </div>
+
+      <div class="form-options">
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="remember" name="remember" />
+          <label for="remember">Remember me</label>
+        </div>
+        <a href="#forgot" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="login-btn" id="login-btn">Sign In</button>
+      <button type="button" class="login-btn demo-login" id="demo-btn">Demo Access</button>
+    </form>
+
+    <div class="divider">or</div>
+
+    <div class="signup-prompt">
+      Don't have an account? <a href="#signup" class="signup-link">Create one</a>
+    </div>
+  </div>
+
+  <script>
+    const demoBtn = document.getElementById('demo-btn');
+
+    demoBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      demoBtn.classList.add('loading');
+      demoBtn.textContent = 'Loading demo...';
+
+      setTimeout(() => {
+        localStorage.setItem('auth_token', 'demo_token_' + Date.now());
+        localStorage.setItem('user', JSON.stringify({
+          id: 'demo',
+          email: 'demo@pathway.local',
+          name: 'Demo User',
+          role: 'caseworker'
+        }));
+        
+        document.querySelector('.login-container').style.animation = 'fadeOut 0.6s ease-out forwards';
+        
+        setTimeout(() => {
+          window.location.href = '/questionnaire.html';
+        }, 600);
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

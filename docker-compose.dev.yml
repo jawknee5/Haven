@@ -1,0 +1,76 @@
+version: '3.9'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: pathway-frontend-dev
+    ports:
+      - "5173:5173"
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://localhost:4000
+    networks:
+      - pathway_net
+    volumes:
+      - ./src:/app/src
+      - ./index.html:/app/index.html
+    develop:
+      watch:
+        - path: ./src
+          action: rebuild
+        - path: ./package.json
+          action: rebuild
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pathway-backend-dev
+    env_file:
+      - ./backend/.env.production
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pathway_net
+    volumes:
+      - ./backend/src:/app/src
+    develop:
+      watch:
+        - path: ./backend/src
+          action: rebuild
+
+  db:
+    image: postgres:15-alpine
+    container_name: pathway-db
+    restart: always
+    environment:
+      - POSTGRES_USER=pathway_prod
+      - POSTGRES_PASSWORD=PathwaySecure2026
+      - POSTGRES_DB=pathway_prod
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - pathway_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pathway_prod -d pathway_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+networks:
+  pathway_net:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local

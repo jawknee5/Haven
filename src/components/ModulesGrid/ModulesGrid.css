@@ -1,0 +1,73 @@
+.modules-section {
+  padding: var(--spacing-xl);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.modules-header {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-l);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-l);
+}
+
+.module-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-l);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m);
+  transition: all 0.3s;
+}
+
+.module-card:hover {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-glow);
+  transform: scale(1.02);
+}
+
+.module-icon {
+  font-size: 32px;
+}
+
+.module-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.module-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.open-btn {
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: var(--spacing-s) var(--spacing-m);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+  align-self: flex-start;
+}
+
+.open-btn:hover {
+  background: var(--accent-blue);
+  filter: brightness(1.1);
+  box-shadow: var(--shadow-glow);
+}
