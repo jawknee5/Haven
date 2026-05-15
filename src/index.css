@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.leaflet-container {
+  font-family: inherit;
+}
+.custom-leaflet-icon div {
+  transition: transform 0.2s ease-in-out;
+}
+.custom-leaflet-icon:hover div {
+  transform: scale(1.1);
+}

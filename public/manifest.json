@@ -1,0 +1,39 @@
+{
+  "name": "Pathway",
+  "short_name": "Pathway",
+  "description": "Mobile-first civic navigation, survival knowledge, and life-management PWA.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0A1A2F",
+  "theme_color": "#1F6F78",
+  "orientation": "portrait",
+  "categories": ["productivity", "education", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/pathway-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/pathway-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/pathway-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/dashboard.png",
+      "sizes": "430x932",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}

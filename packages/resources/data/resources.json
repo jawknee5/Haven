@@ -1,0 +1,12 @@
+[
+  {
+    "id": "food_bank",
+    "name": "Local Food Bank",
+    "description": "Provides free groceries weekly."
+  },
+  {
+    "id": "housing_center",
+    "name": "Housing Support Center",
+    "description": "Emergency housing and rental assistance."
+  }
+]

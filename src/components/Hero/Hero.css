@@ -1,0 +1,21 @@
+.hero {
+  margin-top: 64px;
+  padding: var(--spacing-xxl);
+  text-align: center;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
+}
+
+.hero h1 {
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+  text-transform: uppercase;
+}

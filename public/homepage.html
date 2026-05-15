@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pathway Genesis - San Jose Resource Map</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-primary: #0D0F12;
+      --bg-elevated: #14171C;
+      --bg-card: #1A1E24;
+      --border: #2A2F36;
+      --text-primary: #FFFFFF;
+      --text-secondary: #A7B0BC;
+      --accent-blue: #3B82F6;
+      --accent-purple: #8B5CF6;
+      --accent-green: #10B981;
+      --accent-gold: #d4af37;
+      --shadow-glow: 0 0 12px rgba(59, 130, 246, 0.25);
+    }
+
+    * { box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 64px;
+      background: rgba(20, 23, 28, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      flex: 1;
+      margin-left: 48px;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .icon { font-size: 18px; cursor: pointer; }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      cursor: pointer;
+    }
+
+    main {
+      margin-top: 64px;
+      padding: 32px;
+      max-width: 1600px;
+      margin-left: auto;
+      margin-right: auto;
+      animation: slideInUp 0.8s ease-out;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 32px 0;
+      margin-bottom: 24px;
+      animation: slideInDown 0.6s ease-out;
+    }
+
+    .hero h1 {
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin: 0;
+      background: linear-gradient(135deg, #d4af37 0%, #f0d66d 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
+    }
+
+    .vehicle-selector {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      animation: fadeInScale 0.7s ease-out 0.2s both;
+    }
+
+    .vehicle-btn {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      color: var(--text-secondary);
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vehicle-btn:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-primary);
+    }
+
+    .vehicle-btn.active {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: var(--accent-blue);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .section-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .map-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 16px;
+      margin-bottom: 48px;
+      animation: fadeInScale 0.8s ease-out 0.4s both;
+    }
+
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      touch-action: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    #map-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+
+    #map-canvas:active {
+      cursor: grabbing;
+    }
+
+    .map-controls {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 50;
+    }
+
+    .map-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 18px;
+    }
+
+    .map-btn:hover {
+      border-color: var(--accent-blue);
+      box-shadow: var(--shadow-glow);
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .map-info {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(26, 30, 36, 0.95);
+      border: 1px solid var(--border);
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      z-index: 50;
+      backdrop-filter: blur(10px);
+      min-width: 200px;
+    }
+
+    .map-info-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .map-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 600px;
+    }
+
+    .search-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--text-primary);
+    }
+
+    .resources-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .resources-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .resources-list::-webkit-scrollbar-track {
+      background: rgba(42, 47, 54, 0.3);
+      border-radius: 3px;
+    }
+
+    .resources-list::-webkit-scrollbar-thumb {
+      background: rgba(59, 130, 246, 0.4);
+      border-radius: 3px;
+    }
+
+    .resource-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 12px;
+    }
+
+    .resource-item:hover {
+      border-color: var(--accent-blue);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .resource-item.active {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: var(--accent-blue);
+    }
+
+    .resource-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .resource-type {
+      color: var(--accent-blue);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .resource-distance {
+      color: var(--text-secondary);
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 32px;
+      position: relative;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 24px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .resource-detail-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .resource-detail-icon {
+      font-size: 48px;
+      width: 80px;
+      height: 80px;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .resource-detail-info h2 {
+      font-size: 24px;
+      margin: 0 0 8px 0;
+      font-weight: 700;
+    }
+
+    .resource-detail-info p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .detail-section {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-section h3 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-blue);
+      margin: 0 0 12px 0;
+    }
+
+    .detail-section p {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .detail-section ul {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .detail-section li {
+      margin-bottom: 6px;
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: 12px;
+      flex-direction: column;
+    }
+
+    .detail-btn {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .detail-btn-primary {
+      background: var(--accent-blue);
+      color: white;
+    }
+
+    .detail-btn-primary:hover {
+      filter: brightness(1.1);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .detail-btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .detail-btn-secondary:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-secondary);
+    }
+
+    .camping-type {
+      font-size: 12px;
+      color: var(--accent-green);
+      font-weight: 600;
+      padding: 4px 8px;
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+
+    .route-info {
+      background: rgba(59, 130, 246, 0.1);
+      border-left: 3px solid var(--accent-blue);
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .map-wrapper {
+        grid-template-columns: 1fr;
+      }
+
+      .map-sidebar {
+        height: 300px;
+      }
+
+      .map-container {
+        height: 400px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      main {
+        padding: 16px;
+      }
+
+      .nav {
+        padding: 0 16px;
+      }
+
+      .map-container {
+        height: 350px;
+      }
+
+      .map-sidebar {
+        display: none;
+      }
+
+      .vehicle-selector {
+        gap: 8px;
+      }
+
+      .vehicle-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <span class="logo">🕊️ Pathway Genesis</span>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">Resources</a>
+      <a href="#">Tools</a>
+      <a href="#">Community</a>
+    </div>
+    <div class="nav-right">
+      <span class="icon">🔔</span>
+      <span class="icon">🔍</span>
+      <div class="avatar"></div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <h1>Pathway</h1>
+    </div>
+
+    <div class="vehicle-selector">
+      <button class="vehicle-btn" data-vehicle="none" title="No vehicle - 50 mile radius">🚶 Walking</button>
+      <button class="vehicle-btn" data-vehicle="bike" title="Biking - 50 mile radius">🚴 Biking</button>
+      <button class="vehicle-btn" data-vehicle="transit" title="Public Transit - 50 mile radius">🚌 Transit</button>
+      <button class="vehicle-btn" data-vehicle="car" title="Car - 50 mile radius">🚗 Car</button>
+    </div>
+
+    <div class="section-subtitle">San Jose & Surrounding Areas • 50 Mile Search Radius • Click resource pins for details</div>
+    
+    <div class="map-wrapper">
+      <div class="map-container">
+        <canvas id="map-canvas"></canvas>
+        
+        <div class="map-controls">
+          <button class="map-btn" id="zoom-in" title="Zoom in">+</button>
+          <button class="map-btn" id="zoom-out" title="Zoom out">−</button>
+          <button class="map-btn" id="recenter" title="Recenter">⊕</button>
+        </div>
+
+        <div class="map-info">
+          <div class="map-info-title" id="map-location">San Jose, CA</div>
+          <div id="map-stats">50 mile radius active</div>
+        </div>
+      </div>
+
+      <div class="map-sidebar">
+        <div class="search-box">
+          <input type="text" id="search-resources" placeholder="Search resources..." />
+        </div>
+
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-type="all">All Resources</button>
+          <button class="filter-btn" data-type="food">🥫 Food</button>
+          <button class="filter-btn" data-type="health">⚕️ Health</button>
+          <button class="filter-btn" data-type="housing">🏠 Housing</button>
+          <button class="filter-btn" data-type="jobs">💼 Jobs</button>
+          <button class="filter-btn" data-type="camping">⛺ Camping</button>
+        </div>
+
+        <div class="resources-list" id="resources-list">
+          <div class="loading">Loading resources...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal" id="resource-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeResourceModal()">×</button>
+      <div id="modal-body">
+        <div class="loading">Loading resource details...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const canvas = document.getElementById('map-canvas');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // San Jose coordinates
+      let userLocation = { lat: 37.3382, lng: -121.8863 };
+      const SEARCH_RADIUS_MILES = 50;
+
+      let mapState = {
+        zoom: 9,
+        panX: 0,
+        panY: 0,
+        isDragging: false,
+        dragStartX: 0,
+        dragStartY: 0,
+      };
+
+      let selectedVehicle = null;
+
+      // Comprehensive San Jose & Bay Area Resources
+      const resources = [
+        // San Jose
+        { id: 1, name: 'San Jose Food Bank', type: 'food', lat: 37.3382, lng: -121.8863, hours: '8am-5pm Mon-Fri', phone: '(408) 918-1345', address: '45 S Autumn St, San Jose, CA 95110', services: ['Fresh produce', 'Pantry items', 'Nutrition info'], distance: 0 },
+        { id: 2, name: 'Valley Medical Center', type: 'health', lat: 37.3510, lng: -121.8772, hours: '24/7', phone: '(408) 885-5000', address: '9500 N. Windy Hill Dr, San Jose, CA 95123', services: ['Emergency care', 'Primary care', 'Mental health'], distance: 2.1 },
+        { id: 3, name: 'First Step Communities', type: 'housing', lat: 37.3298, lng: -121.8945, hours: '24/7', phone: '(408) 288-4777', address: '2020 Story Rd, San Jose, CA 95122', services: ['Emergency shelter', 'Transitional housing', 'Case mgmt'], distance: 1.2 },
+        { id: 4, name: 'Tech Career Academy', type: 'jobs', lat: 37.3397, lng: -121.8802, hours: '9am-6pm', phone: '(408) 294-8324', address: '350 W San Carlos St, San Jose, CA 95110', services: ['Job training', 'Resume help', 'Job placement'], distance: 0.5 },
+        
+        // Santa Clara
+        { id: 5, name: 'Santa Clara Legal Aid', type: 'legal', lat: 37.3541, lng: -121.9552, hours: '9am-5pm', phone: '(408) 288-6840', address: '2440 Technology Dr, Santa Clara, CA 95051', services: ['Immigration help', 'Family law', 'Housing disputes'], distance: 5.2 },
+        { id: 6, name: 'Santa Clara Health Center', type: 'health', lat: 37.3480, lng: -121.9602, hours: '8am-8pm', phone: '(408) 615-6200', address: '2635 N. First St, Santa Clara, CA 95050', services: ['Primary care', 'Dental', 'Mental health'], distance: 5.8 },
+
+        // Camping - Paid
+        { id: 7, name: 'Big Basin Redwoods Camping', type: 'camping', variant: 'paid', lat: 37.1761, lng: -122.2313, hours: '24/7', phone: '(831) 338-6132', address: 'Big Basin Redwoods State Park, Boulder Creek, CA 95006', services: ['RV sites', 'Tent camping', 'Day use'], distance: 38.5 },
+        { id: 8, name: 'Sunnyvale RV Park', type: 'camping', variant: 'paid', lat: 37.3729, lng: -122.0323, hours: '24/7', phone: '(408) 739-0363', address: '750 E Evelyn Ave, Sunnyvale, CA 94086', services: ['Full hookups', 'Cable/WiFi', 'Laundry'], distance: 8.2 },
+        
+        // Camping - Free
+        { id: 9, name: 'Ohlone Regional Wilderness', type: 'camping', variant: 'free', lat: 37.4208, lng: -121.6514, hours: '24/7', phone: '(888) 327-2757', address: 'Sunol, CA 94586', services: ['Backcountry camping', 'Day use', 'Hiking trails'], distance: 22.3 },
+        { id: 10, name: 'Del Valle Regional Park', type: 'camping', variant: 'free', lat: 37.3871, lng: -121.6639, hours: '24/7', phone: '(510) 635-0135', address: 'Livermore, CA 94550', services: ['Group sites', 'Day use', 'Water access'], distance: 25.1 },
+
+        // San Jose (more)
+        { id: 11, name: 'San Jose Rescue Mission', type: 'housing', lat: 37.3208, lng: -121.8735, hours: '24/7', phone: '(408) 535-6700', address: '200 E Santa Clara St, San Jose, CA 95113', services: ['Emergency beds', 'Meals', 'Showers'], distance: 1.5 },
+        { id: 12, name: 'Kaiser Permanente San Jose', type: 'health', lat: 37.3382, lng: -121.8910, hours: '8am-6pm', phone: '(408) 567-6000', address: '250 Hospital Pkwy, San Jose, CA 95119', services: ['Medical clinic', 'Mental health', 'Urgent care'], distance: 3.2 },
+
+        // Milpitas
+        { id: 13, name: 'Milpitas Community Center Food Pantry', type: 'food', lat: 37.4272, lng: -121.8939, hours: '10am-4pm Tue/Thu', phone: '(408) 586-3220', address: '645 E Calaveras Blvd, Milpitas, CA 95035', services: ['Emergency food', 'Weekly groceries', 'Kids programs'], distance: 7.1 },
+
+        // Mountain View
+        { id: 14, name: 'Mountain View Community Services', type: 'housing', lat: 37.3860, lng: -122.0808, hours: '9am-5pm', phone: '(650) 903-6395', address: '750 California St, Mountain View, CA 94041', services: ['Homeless services', 'Job training', 'Mental health'], distance: 9.3 },
+      ];
+
+      let filteredResources = [...resources];
+      let selectedResource = null;
+
+      function resizeCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        drawMap();
+      }
+
+      function latLngToPixel(lat, lng, zoom, centerLat, centerLng, mapWidth, mapHeight) {
+        const scale = Math.pow(2, zoom);
+        const worldWidth = 256 * scale;
+        const worldHeight = 256 * scale;
+
+        const x = ((lng + 180) / 360) * worldWidth;
+        const y = ((90 - lat) / 180) * worldHeight;
+
+        const centerX = ((centerLng + 180) / 360) * worldWidth;
+        const centerY = ((90 - centerLat) / 180) * worldHeight;
+
+        return {
+          x: mapWidth / 2 + (x - centerX) + mapState.panX,
+          y: mapHeight / 2 + (y - centerY) + mapState.panY
+        };
+      }
+
+      function calculateDistance(lat1, lng1, lat2, lng2) {
+        const R = 3959;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return (R * c).toFixed(1);
+      }
+
+      function getResourceIcon(type, variant) {
+        const icons = {
+          food: '🥫',
+          health: '⚕️',
+          housing: '🏠',
+          jobs: '💼',
+          legal: '⚖️',
+          camping: variant === 'paid' ? '🏨' : '⛺'
+        };
+        return icons[type] || '📍';
+      }
+
+      function drawMap() {
+        if (!ctx || canvas.width === 0 || canvas.height === 0) return;
+        
+        ctx.fillStyle = 'rgba(26, 30, 36, 0.95)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw grid
+        ctx.strokeStyle = 'rgba(42, 47, 54, 0.2)';
+        ctx.lineWidth = 1;
+        const gridSize = 50;
+        for (let i = mapState.panX % gridSize; i < canvas.width; i += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, canvas.height);
+          ctx.stroke();
+        }
+        for (let i = mapState.panY % gridSize; i < canvas.height; i += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(0, i);
+          ctx.lineTo(canvas.width, i);
+          ctx.stroke();
+        }
+
+        // Draw search radius
+        const userPixel = latLngToPixel(userLocation.lat, userLocation.lng, mapState.zoom, userLocation.lat, userLocation.lng, canvas.width, canvas.height);
+        const radiusPx = (SEARCH_RADIUS_MILES / 69) * Math.pow(2, mapState.zoom) * 256 / 360;
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.15)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(userPixel.x, userPixel.y, radiusPx, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // User glow
+        const userGlow = ctx.createRadialGradient(userPixel.x, userPixel.y, 0, userPixel.x, userPixel.y, 100);
+        userGlow.addColorStop(0, 'rgba(212, 175, 55, 0.4)');
+        userGlow.addColorStop(1, 'rgba(212, 175, 55, 0)');
+        ctx.fillStyle = userGlow;
+        ctx.beginPath();
+        ctx.arc(userPixel.x, userPixel.y, 100, 0, Math.PI * 2);
+        ctx.fill();
+
+        // User marker
+        ctx.fillStyle = '#d4af37';
+        ctx.beginPath();
+        ctx.arc(userPixel.x, userPixel.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(userPixel.x, userPixel.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw resources
+        filteredResources.forEach(resource => {
+          const pixel = latLngToPixel(resource.lat, resource.lng, mapState.zoom, userLocation.lat, userLocation.lng, canvas.width, canvas.height);
+
+          if (pixel.x < -50 || pixel.x > canvas.width + 50 || pixel.y < -50 || pixel.y > canvas.height + 50) return;
+
+          const glow = ctx.createRadialGradient(pixel.x, pixel.y, 0, pixel.x, pixel.y, 60);
+          const glowColor = selectedResource?.id === resource.id ? 'rgba(139, 92, 246' : 'rgba(59, 130, 246';
+          glow.addColorStop(0, glowColor + ', 0.3)');
+          glow.addColorStop(1, glowColor + ', 0)');
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(pixel.x, pixel.y, 60, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = selectedResource?.id === resource.id ? 'rgba(139, 92, 246, 0.9)' : 'rgba(26, 30, 36, 0.95)';
+          ctx.beginPath();
+          ctx.arc(pixel.x, pixel.y, 14, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = selectedResource?.id === resource.id ? '#8b5cf6' : '#3b82f6';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(pixel.x, pixel.y, 14, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.font = '16px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(getResourceIcon(resource.type, resource.variant), pixel.x, pixel.y);
+        });
+      }
+
+      // MOUSE CONTROLS
+      canvas.addEventListener('mousedown', (e) => {
+        mapState.isDragging = true;
+        mapState.dragStartX = e.clientX;
+        mapState.dragStartY = e.clientY;
+        canvas.style.cursor = 'grabbing';
+      });
+
+      canvas.addEventListener('mousemove', (e) => {
+        if (!mapState.isDragging) return;
+        const deltaX = e.clientX - mapState.dragStartX;
+        const deltaY = e.clientY - mapState.dragStartY;
+        mapState.panX += deltaX;
+        mapState.panY += deltaY;
+        mapState.dragStartX = e.clientX;
+        mapState.dragStartY = e.clientY;
+        drawMap();
+      });
+
+      canvas.addEventListener('mouseup', () => {
+        mapState.isDragging = false;
+        canvas.style.cursor = 'grab';
+      });
+
+      canvas.addEventListener('mouseleave', () => {
+        mapState.isDragging = false;
+      });
+
+      canvas.addEventListener('click', (e) => {
+        if (mapState.isDragging) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        filteredResources.forEach(resource => {
+          const pixel = latLngToPixel(resource.lat, resource.lng, mapState.zoom, userLocation.lat, userLocation.lng, canvas.width, canvas.height);
+          const distance = Math.sqrt((clickX - pixel.x) ** 2 + (clickY - pixel.y) ** 2);
+          if (distance < 20) {
+            selectedResource = resource;
+            openResourceModal(resource);
+            drawMap();
+          }
+        });
+      });
+
+      // ZOOM CONTROLS
+      document.getElementById('zoom-in').addEventListener('click', () => {
+        mapState.zoom = Math.min(mapState.zoom + 1, 20);
+        drawMap();
+      });
+
+      document.getElementById('zoom-out').addEventListener('click', () => {
+        mapState.zoom = Math.max(mapState.zoom - 1, 1);
+        drawMap();
+      });
+
+      document.getElementById('recenter').addEventListener('click', () => {
+        mapState.panX = 0;
+        mapState.panY = 0;
+        mapState.zoom = 9;
+        selectedResource = null;
+        drawMap();
+      });
+
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -1 : 1;
+        mapState.zoom = Math.max(1, Math.min(mapState.zoom + delta, 20));
+        drawMap();
+      });
+
+      // TOUCH SUPPORT
+      let touchStartX = 0;
+      let touchStartY = 0;
+
+      canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+        }
+      });
+
+      canvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1) {
+          const deltaX = e.touches[0].clientX - touchStartX;
+          const deltaY = e.touches[0].clientY - touchStartY;
+          mapState.panX += deltaX;
+          mapState.panY += deltaY;
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+          drawMap();
+        }
+      });
+
+      // VEHICLE SELECTION
+      document.querySelectorAll('.vehicle-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          selectedVehicle = this.getAttribute('data-vehicle');
+          document.querySelectorAll('.vehicle-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Filter resources within 50 miles
+          const maxDist = 50;
+          filteredResources = resources.filter(r => {
+            const dist = parseFloat(calculateDistance(userLocation.lat, userLocation.lng, r.lat, r.lng));
+            return dist <= maxDist;
+          });
+          updateResourcesList();
+          drawMap();
+        });
+      });
+
+      // FILTERS
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+
+          const type = this.getAttribute('data-type');
+          const maxDist = 50;
+          filteredResources = resources.filter(r => {
+            const dist = parseFloat(calculateDistance(userLocation.lat, userLocation.lng, r.lat, r.lng));
+            return (type === 'all' ? true : r.type === type) && dist <= maxDist;
+          });
+          updateResourcesList();
+          drawMap();
+        });
+      });
+
+      document.getElementById('search-resources').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const maxDist = 50;
+        filteredResources = resources.filter(r => {
+          const dist = parseFloat(calculateDistance(userLocation.lat, userLocation.lng, r.lat, r.lng));
+          return r.name.toLowerCase().includes(query) && dist <= maxDist;
+        });
+        updateResourcesList();
+        drawMap();
+      });
+
+      function updateResourcesList() {
+        const list = document.getElementById('resources-list');
+        if (filteredResources.length === 0) {
+          list.innerHTML = '<div class="loading">No resources within 50 miles</div>';
+          return;
+        }
+
+        list.innerHTML = filteredResources.map(resource => {
+          const distance = calculateDistance(userLocation.lat, userLocation.lng, resource.lat, resource.lng);
+          return `
+            <div class="resource-item ${selectedResource?.id === resource.id ? 'active' : ''}" onclick="selectResource(${resource.id})">
+              <div class="resource-name">${getResourceIcon(resource.type, resource.variant)} ${resource.name}</div>
+              <div class="resource-type">${resource.type}${resource.variant ? ' - ' + resource.variant : ''}</div>
+              <div class="resource-distance">${distance} miles</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      window.selectResource = function(id) {
+        selectedResource = resources.find(r => r.id === id);
+        updateResourcesList();
+        openResourceModal(selectedResource);
+        drawMap();
+      }
+
+      function getRouteInfo(vehicle, distance) {
+        const dist = parseFloat(distance);
+        switch(vehicle) {
+          case 'none':
+            const walkTime = (dist / 3).toFixed(1);
+            return `🚶 Walking: ~${walkTime} hours (${dist} mi)`;
+          case 'bike':
+            const bikeTime = (dist / 12).toFixed(1);
+            return `🚴 Biking: ~${bikeTime} hours (${dist} mi)`;
+          case 'transit':
+            const transitTime = (dist / 20).toFixed(1);
+            return `🚌 Transit: ~${transitTime} hours (${dist} mi)`;
+          case 'car':
+            const carTime = (dist / 35).toFixed(1);
+            return `🚗 Driving: ~${carTime} hours (${dist} mi)`;
+          default:
+            return `Distance: ${dist} miles`;
+        }
+      }
+
+      function openResourceModal(resource) {
+        const distance = calculateDistance(userLocation.lat, userLocation.lng, resource.lat, resource.lng);
+        const modal = document.getElementById('resource-modal');
+        const body = document.getElementById('modal-body');
+
+        let campingInfo = '';
+        if (resource.type === 'camping') {
+          campingInfo = `<div class="camping-type">${resource.variant === 'paid' ? '💵 Paid Camping' : '✨ Free Camping'}</div>`;
+        }
+
+        let routeInfo = '';
+        if (selectedVehicle) {
+          routeInfo = `<div class="route-info">${getRouteInfo(selectedVehicle, distance)}</div>`;
+        }
+
+        body.innerHTML = `
+          <div class="resource-detail-header">
+            <div class="resource-detail-icon">${getResourceIcon(resource.type, resource.variant)}</div>
+            <div class="resource-detail-info">
+              <h2>${resource.name}</h2>
+              <p>${resource.address}</p>
+            </div>
+          </div>
+
+          ${campingInfo}
+
+          <div class="detail-section">
+            <h3>Contact</h3>
+            <p><strong>Phone:</strong> ${resource.phone}</p>
+            <p><strong>Hours:</strong> ${resource.hours}</p>
+            <p><strong>Distance:</strong> ${distance} miles away</p>
+            ${routeInfo}
+          </div>
+
+          <div class="detail-section">
+            <h3>Services</h3>
+            <ul>
+              ${resource.services.map(s => `<li>${s}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div class="detail-actions">
+            <button class="detail-btn detail-btn-primary" onclick="centerMapOn(${resource.lat}, ${resource.lng})">Show Me On Map</button>
+            <button class="detail-btn detail-btn-primary" onclick="callResource('${resource.phone}')">Call Now</button>
+            <button class="detail-btn detail-btn-secondary" onclick="closeResourceModal()">Close</button>
+          </div>
+        `;
+
+        modal.classList.add('active');
+      }
+
+      window.centerMapOn = function(lat, lng) {
+        userLocation.lat = lat;
+        userLocation.lng = lng;
+        mapState.panX = 0;
+        mapState.panY = 0;
+        mapState.zoom = 12;
+        drawMap();
+        closeResourceModal();
+      }
+
+      window.closeResourceModal = function() {
+        document.getElementById('resource-modal').classList.remove('active');
+      }
+
+      window.callResource = function(phone) {
+        window.location.href = `tel:${phone}`;
+      }
+
+      document.getElementById('resource-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeResourceModal();
+      });
+
+      updateResourcesList();
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+    });
+  </script>
+</body>
+</html>

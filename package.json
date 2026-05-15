@@ -1,0 +1,49 @@
+{
+  "name": "haven",
+  "version": "4.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Haven - Enterprise-Grade Civic Technology Platform. Created by Johnathan R. Rodriquez.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext swc,ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "cypress": "cypress open",
+    "cypress:run": "cypress run"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.15.0",
+    "@testing-library/react": "^14.0.0",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.18",
+    "cypress": "^13.0.0",
+    "postcss": "^8.4.35",
+    "prisma": "^5.15.0",
+    "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0",
+    "vite": "^7.3.3",
+    "vitest": "^0.34.0"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "bullmq": "^5.7.0",
+    "ioredis": "^5.4.1",
+    "jspdf": "^2.5.1",
+    "papaparse": "^5.4.1",
+    "pg": "^8.20.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-router-dom": "^6.23.0",
+    "socket.io-client": "^4.7.0",
+    "zustand": "^4.4.0"
+  }
+}

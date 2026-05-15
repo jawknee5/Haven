@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pathway Genesis - Intro</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0a1a2f 0%, #0d0f12 50%, #1a0f2e 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Arial', sans-serif;
+      overflow: hidden;
+    }
+
+    #intro-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .intro-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      font-size: clamp(2rem, 8vw, 4rem);
+      font-weight: 900;
+      letter-spacing: 3px;
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+      text-shadow: 0 0 20px rgba(212, 175, 55, 0.6), 
+                   0 0 40px rgba(212, 175, 55, 0.3),
+                   0 0 60px rgba(212, 175, 55, 0.2);
+    }
+
+    .intro-text span {
+      background: linear-gradient(135deg, #d4af37 0%, #f0d66d 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.5));
+    }
+
+    .logo-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      opacity: 0;
+    }
+
+    .pathway-text {
+      position: absolute;
+      bottom: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 3.5rem;
+      font-weight: 900;
+      letter-spacing: 8px;
+      opacity: 0;
+      background: linear-gradient(135deg, #d4af37 0%, #f0d66d 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+      text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+      filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { 
+        text-shadow: 0 0 20px rgba(212, 175, 55, 0.6),
+                     0 0 40px rgba(212, 175, 55, 0.3);
+      }
+      50% {
+        text-shadow: 0 0 30px rgba(212, 175, 55, 0.8),
+                     0 0 60px rgba(212, 175, 55, 0.5),
+                     0 0 80px rgba(212, 175, 55, 0.2);
+      }
+    }
+
+    @keyframes text-fade-in-out {
+      0% { opacity: 0; }
+      20% { opacity: 1; animation: glow-pulse 2s ease-in-out infinite; }
+      70% { opacity: 1; animation: glow-pulse 2s ease-in-out infinite; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes logo-fade-in {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @keyframes pathway-text-fade-in {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="intro-container">
+    <canvas id="intro-canvas"></canvas>
+    <div class="intro-text" id="intro-text">
+      <span>I can show you the way</span>
+    </div>
+    <div class="logo-container" id="logo-container">
+      <svg width="280" height="280" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+        <!-- Dove Body -->
+        <ellipse cx="140" cy="100" rx="35" ry="45" fill="#d4af37" opacity="0.9"/>
+        
+        <!-- Dove Head -->
+        <circle cx="140" cy="60" r="20" fill="#d4af37" opacity="0.9"/>
+        
+        <!-- Dove Beak -->
+        <polygon points="155,60 175,58 160,65" fill="#d4af37" opacity="0.9"/>
+        
+        <!-- Left Wing (Gold) -->
+        <path d="M 115 85 Q 80 70 70 100 Q 75 95 90 100 Q 110 90 120 95" 
+              fill="#d4af37" opacity="0.9"/>
+        <path d="M 110 90 Q 75 75 60 110 Q 70 100 85 105 Q 105 95 115 100" 
+              fill="#f0d66d" opacity="0.8"/>
+        
+        <!-- Right Wing (Silver/White) -->
+        <path d="M 165 85 Q 200 70 210 100 Q 205 95 190 100 Q 170 90 160 95" 
+              fill="#e8e8e8" opacity="0.9"/>
+        <path d="M 170 90 Q 205 75 220 110 Q 210 100 195 105 Q 175 95 165 100" 
+              fill="#f5f5f5" opacity="0.8"/>
+        
+        <!-- Spiral Trail Bottom (Gold & Silver) -->
+        <path d="M 140 140 Q 120 160 130 190 Q 140 210 160 205 Q 170 195 165 170 Q 155 150 140 140" 
+              stroke="#d4af37" stroke-width="12" fill="none" opacity="0.8" stroke-linecap="round"/>
+        <path d="M 140 140 Q 120 160 130 190 Q 140 210 160 205 Q 170 195 165 170 Q 155 150 140 140" 
+              stroke="#e8e8e8" stroke-width="6" fill="none" opacity="0.6" stroke-linecap="round"/>
+        
+        <!-- Eye -->
+        <circle cx="145" cy="55" r="2.5" fill="#0a1a2f"/>
+      </svg>
+      <div class="pathway-text" id="pathway-text">PATHWAY</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('intro-canvas');
+    const ctx = canvas.getContext('2d');
+    const introText = document.getElementById('intro-text');
+    const logoContainer = document.getElementById('logo-container');
+    const pathwayText = document.getElementById('pathway-text');
+
+    // Set canvas size
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    // Particle system for dove trail
+    const particles = [];
+
+    class TrailParticle {
+      constructor(x, y, vx, vy) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.life = 1;
+        this.size = Math.random() * 3 + 2;
+        this.hue = Math.random() < 0.5 ? 45 : 0; // Gold or neutral
+        this.saturation = Math.random() < 0.5 ? 100 : 30;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life -= 0.02;
+        this.size *= 0.98;
+        this.vy += 0.1; // Gravity
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.fillStyle = `hsl(${this.hue}, ${this.saturation}%, 60%)`;
+        ctx.shadowColor = `hsl(${this.hue}, ${this.saturation}%, 60%)`;
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    let animationPhase = 0; // 0: text, 1: dove flying, 2: done
+    let textStartTime = 0;
+    let doveStartTime = 0;
+
+    // Animation timeline
+    function animate() {
+      const now = Date.now();
+
+      // Phase 1: Text shimmer (0-4 seconds)
+      if (animationPhase === 0) {
+        if (textStartTime === 0) textStartTime = now;
+        const elapsed = now - textStartTime;
+
+        if (elapsed < 4000) {
+          introText.style.animation = `text-fade-in-out 4s ease-in-out forwards`;
+          introText.style.opacity = '1';
+        } else {
+          introText.style.opacity = '0';
+          animationPhase = 1;
+          doveStartTime = now;
+          logoContainer.style.animation = `logo-fade-in 3s ease-out forwards`;
+          logoContainer.style.opacity = '1';
+        }
+      }
+
+      // Phase 2: Dove flight and trail (4-7 seconds)
+      if (animationPhase === 1) {
+        const elapsed = now - doveStartTime;
+        const progress = Math.min(elapsed / 3000, 1);
+
+        if (progress < 1) {
+          // Dove circular motion
+          const angle = progress * Math.PI * 3; // Multiple rotations
+          const radius = 180 * (1 - progress * 0.3);
+          const doveX = centerX + Math.cos(angle) * radius;
+          const doveY = centerY - 100 + Math.sin(angle) * radius * 0.6;
+
+          // Create trail particles
+          for (let i = 0; i < 3; i++) {
+            const vx = (Math.random() - 0.5) * 2;
+            const vy = (Math.random() - 0.5) * 2;
+            particles.push(new TrailParticle(doveX, doveY, vx, vy));
+          }
+
+          // Position logo
+          const scale = 0.5 + progress * 0.5;
+          logoContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        } else {
+          animationPhase = 2;
+          pathwayText.style.animation = `pathway-text-fade-in 2s ease-out forwards`;
+          pathwayText.style.opacity = '1';
+        }
+      }
+
+      // Phase 3: Complete - redirect after 2 more seconds
+      if (animationPhase === 2) {
+        const elapsed = now - doveStartTime;
+        if (elapsed > 5000) {
+          window.location.href = '/login.html';
+        }
+      }
+
+      // Update and draw particles
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw glow background
+      const gradient = ctx.createRadialGradient(centerX, centerY - 100, 0, centerX, centerY - 100, 500);
+      gradient.addColorStop(0, 'rgba(212, 175, 55, 0.1)');
+      gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Update particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        if (particles[i].life <= 0) {
+          particles.splice(i, 1);
+        } else {
+          particles[i].draw(ctx);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

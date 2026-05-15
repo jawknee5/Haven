@@ -1,0 +1,35 @@
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-m);
+  padding: var(--spacing-xl);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dash-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-l);
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.dash-card:hover {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-glow);
+}
+
+.dash-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  margin-bottom: var(--spacing-s);
+}
+
+.dash-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}

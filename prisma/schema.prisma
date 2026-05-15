@@ -1,0 +1,302 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id                    String      @id @default(uuid())
+  email                 String      @unique
+  passwordHash          String
+  name                  String
+  role                  UserRole    @default(CITIZEN)
+  onboardingCompleted   Boolean     @default(false)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  // Relations
+  cases                 Case[]
+  tasks                 Task[]
+  assessments           RiskAssessment[]
+  alerts                Alert[]
+  sessions              Session[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  CITIZEN
+  CASEWORKER
+  ADMIN
+  SYSTEM
+}
+
+model Session {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
+// ============================================
+// CASE MANAGEMENT & TRIAGE
+// ============================================
+
+model Case {
+  id              String              @id @default(uuid())
+  userId          String?
+  user            User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  title           String
+  description     String              @db.Text
+  status          CaseStatus          @default(NEW)
+  
+  // OTEE Data
+  urgencyScore    Int?                @default(0)
+  categoryTag     CaseCategory?
+  enrichedAt      DateTime?
+  
+  // HTCRM Data
+  assignedResourceId  String?
+  assignedResource    Resource?       @relation(fields: [assignedResourceId], references: [id], onDelete: SetNull)
+  routedAt        DateTime?
+  
+  // Metadata
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relations
+  assessment      RiskAssessment?
+  
+  @@index([userId])
+  @@index([status])
+  @@index([categoryTag])
+  @@index([urgencyScore])
+  @@index([createdAt])
+}
+
+enum CaseStatus {
+  NEW
+  ENRICHED
+  ROUTED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum CaseCategory {
+  HOUSING
+  FOOD
+  MEDICAL
+  UTILITIES
+  GOODS
+  EMPLOYMENT
+  MENTAL_HEALTH
+  SUBSTANCE_ABUSE
+  DOMESTIC_VIOLENCE
+  CHILD_WELFARE
+  EDUCATION
+  TRANSPORTATION
+  LEGAL
+  OTHER
+}
+
+// ============================================
+// TASK ENGINE (OFFICIAL SCHEMA)
+// ============================================
+
+model Task {
+  id              String              @id @default(uuid())
+  userId          String
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Core Fields
+  title           String
+  description     String              @db.Text
+  category        String              // HOUSING, EMPLOYMENT, HEALTH, etc.
+  status          TaskStatus          @default(PENDING)
+  priority        TaskPriority        @default(MEDIUM)
+  dueDate         DateTime?
+  
+  // Progress Tracking
+  steps           TaskStep[]
+  
+  // Actions (JSON for flexibility)
+  actions         Json                // { upload, call, map, openResource }
+  
+  // Analytics
+  analytics       Json                // { streakImpact, badgeTriggers, completionWeight }
+  
+  // Metadata
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  completedAt     DateTime?
+  
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model TaskStep {
+  id              String              @id @default(uuid())
+  taskId          String
+  task            Task                @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  label           String
+  completed       Boolean             @default(false)
+  completedAt     DateTime?
+  
+  createdAt       DateTime            @default(now())
+  
+  @@index([taskId])
+}
+
+// ============================================
+// RESOURCE MANAGEMENT
+// ============================================
+
+model Resource {
+  id              String      @id @default(uuid())
+  name            String
+  description     String      @db.Text
+  category        CaseCategory
+  
+  // Location & Contact
+  address         String
+  lat             Float
+  lng             Float
+  phone           String?
+  website         String?
+  email           String?
+  
+  // Capacity Management
+  capacity        Int         @default(0)
+  available       Int         @default(0)
+  
+  // Status
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  cases           Case[]
+  
+  @@index([category])
+  @@index([isActive])
+}
+
+// ============================================
+// RISK ASSESSMENT & PREDICTIVE
+// ============================================
+
+model RiskAssessment {
+  id              String        @id @default(uuid())
+  caseId          String        @unique
+  case            Case          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  riskLevel       RiskLevel
+  score           Float         @default(0.0)
+  factors         String[]      // Array of risk factors identified
+  recommendations String[]      // Array of recommended actions
+  
+  aiModel         String        @default("gpt-3.5-turbo")
+  processedAt     DateTime      @default(now())
+  
+  @@index([caseId])
+  @@index([userId])
+  @@index([riskLevel])
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ============================================
+// ALERTS & CRISIS MANAGEMENT
+// ============================================
+
+model Alert {
+  id              String    @id @default(uuid())
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  message         String    @db.Text
+  severity        AlertSeverity
+  type            AlertType
+  
+  isActive        Boolean   @default(true)
+  acknowledgedAt  DateTime?
+  
+  createdAt       DateTime  @default(now())
+  expiresAt       DateTime?
+  
+  @@index([userId])
+  @@index([severity])
+  @@index([isActive])
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertType {
+  WEATHER
+  RESOURCE_ALERT
+  HEALTH_NOTICE
+  SYSTEM_STATUS
+  CASE_UPDATE
+  MATCHING_OPPORTUNITY
+}
+
+// ============================================
+// AUDIT & LOGGING
+// ============================================
+
+model AuditLog {
+  id              String    @id @default(uuid())
+  userId          String?
+  action          String
+  entity          String
+  entityId        String
+  changes         Json?
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}

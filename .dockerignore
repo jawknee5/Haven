@@ -1,0 +1,11 @@
+node_modules
+.git
+.env
+*.bak
+.github
+PassDowns
+apps
+engines
+ops
+prisma
+*.db

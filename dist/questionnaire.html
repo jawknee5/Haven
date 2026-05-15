@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crisis Assessment - Pathway Genesis</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0a1a2f 0%, #0d0f12 50%, #1a0f2e 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding: 20px;
+    }
+
+    .questionnaire-container {
+      width: 100%;
+      max-width: 600px;
+      background: linear-gradient(135deg, rgba(26, 30, 36, 0.9), rgba(20, 23, 28, 0.95));
+      border: 1px solid rgba(42, 47, 54, 0.8);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 8px 32px rgba(212, 175, 55, 0.1), 0 0 60px rgba(212, 175, 55, 0.05);
+      animation: slideUp 0.6s ease-out;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #d4af37 0%, #f0d66d 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 13px;
+      color: #a7b0bc;
+      line-height: 1.6;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(42, 47, 54, 0.6);
+      border-radius: 2px;
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .question-container {
+      margin-bottom: 32px;
+      animation: slideInQuestion 0.5s ease-out;
+    }
+
+    .question-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .question-number {
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #3b82f6;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .radio-option {
+      position: relative;
+    }
+
+    input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(13, 15, 18, 0.6);
+      border: 1px solid rgba(42, 47, 54, 0.6);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+      color: #a7b0bc;
+    }
+
+    input[type="radio"]:checked + .radio-label {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .radio-label:hover {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .radio-dot {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #a7b0bc;
+      border-radius: 50%;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    input[type="radio"]:checked + .radio-label .radio-dot {
+      border-color: #3b82f6;
+      background: #3b82f6;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    button {
+      flex: 1;
+      padding: 14px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+    }
+
+    .submit-btn {
+      background: linear-gradient(135deg, #d4af37 0%, #f0d66d 50%, #d4af37 100%);
+      color: #0a1a2f;
+      box-shadow: 0 4px 16px rgba(212, 175, 55, 0.2);
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(212, 175, 55, 0.35);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .skip-btn {
+      background: transparent;
+      border: 1px solid rgba(42, 47, 54, 0.8);
+      color: #a7b0bc;
+    }
+
+    .skip-btn:hover {
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .info-box {
+      background: rgba(59, 130, 246, 0.1);
+      border-left: 3px solid #3b82f6;
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #a7b0bc;
+      margin-top: 16px;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInQuestion {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .questionnaire-container {
+        padding: 24px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="questionnaire-container">
+    <div class="header">
+      <h1>Crisis Assessment</h1>
+      <p>Help us understand your current situation so we can recommend the most relevant resources and support.</p>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+
+    <form id="questionnaire-form">
+      <!-- Question 1: Housing -->
+      <div class="question-container">
+        <label class="question-label">
+          <span class="question-number">1</span>
+          What is your current housing situation?
+        </label>
+        <div class="options">
+          <div class="radio-option">
+            <input type="radio" id="q1-a" name="housing" value="stable" />
+            <label for="q1-a" class="radio-label">
+              <span class="radio-dot"></span>
+              Stable housing (home or apartment)
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q1-b" name="housing" value="unstable" />
+            <label for="q1-b" class="radio-label">
+              <span class="radio-dot"></span>
+              Unstable (temporary, staying with friends/family)
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q1-c" name="housing" value="homeless" />
+            <label for="q1-c" class="radio-label">
+              <span class="radio-dot"></span>
+              Homeless or living on the street
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question 2: Food Security -->
+      <div class="question-container">
+        <label class="question-label">
+          <span class="question-number">2</span>
+          How often do you have difficulty affording food?
+        </label>
+        <div class="options">
+          <div class="radio-option">
+            <input type="radio" id="q2-a" name="food" value="never" />
+            <label for="q2-a" class="radio-label">
+              <span class="radio-dot"></span>
+              Never or rarely
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q2-b" name="food" value="sometimes" />
+            <label for="q2-b" class="radio-label">
+              <span class="radio-dot"></span>
+              Sometimes (1-2 times per month)
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q2-c" name="food" value="often" />
+            <label for="q2-c" class="radio-label">
+              <span class="radio-dot"></span>
+              Often (multiple times per week)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question 3: Health -->
+      <div class="question-container">
+        <label class="question-label">
+          <span class="question-number">3</span>
+          Do you have access to healthcare?
+        </label>
+        <div class="options">
+          <div class="radio-option">
+            <input type="radio" id="q3-a" name="health" value="yes" />
+            <label for="q3-a" class="radio-label">
+              <span class="radio-dot"></span>
+              Yes, regular healthcare provider
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q3-b" name="health" value="partial" />
+            <label for="q3-b" class="radio-label">
+              <span class="radio-dot"></span>
+              Limited access (emergency only)
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q3-c" name="health" value="no" />
+            <label for="q3-c" class="radio-label">
+              <span class="radio-dot"></span>
+              No healthcare access
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question 4: Mental Health -->
+      <div class="question-container">
+        <label class="question-label">
+          <span class="question-number">4</span>
+          How would you rate your mental/emotional well-being?
+        </label>
+        <div class="options">
+          <div class="radio-option">
+            <input type="radio" id="q4-a" name="mentalhealth" value="stable" />
+            <label for="q4-a" class="radio-label">
+              <span class="radio-dot"></span>
+              Stable and coping well
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q4-b" name="mentalhealth" value="struggling" />
+            <label for="q4-b" class="radio-label">
+              <span class="radio-dot"></span>
+              Struggling but managing
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q4-c" name="mentalhealth" value="crisis" />
+            <label for="q4-c" class="radio-label">
+              <span class="radio-dot"></span>
+              In crisis or immediate need
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question 5: Employment -->
+      <div class="question-container">
+        <label class="question-label">
+          <span class="question-number">5</span>
+          What is your current employment status?
+        </label>
+        <div class="options">
+          <div class="radio-option">
+            <input type="radio" id="q5-a" name="employment" value="employed" />
+            <label for="q5-a" class="radio-label">
+              <span class="radio-dot"></span>
+              Employed full-time or part-time
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q5-b" name="employment" value="seeking" />
+            <label for="q5-b" class="radio-label">
+              <span class="radio-dot"></span>
+              Seeking employment
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q5-c" name="employment" value="unable" />
+            <label for="q5-c" class="radio-label">
+              <span class="radio-dot"></span>
+              Unable to work (disabled, caregiving)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question 6: Support System -->
+      <div class="question-container">
+        <label class="question-label">
+          <span class="question-number">6</span>
+          Do you have a support system?
+        </label>
+        <div class="options">
+          <div class="radio-option">
+            <input type="radio" id="q6-a" name="support" value="strong" />
+            <label for="q6-a" class="radio-label">
+              <span class="radio-dot"></span>
+              Strong support (family, friends, community)
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q6-b" name="support" value="some" />
+            <label for="q6-b" class="radio-label">
+              <span class="radio-dot"></span>
+              Some support available
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q6-c" name="support" value="isolated" />
+            <label for="q6-c" class="radio-label">
+              <span class="radio-dot"></span>
+              Isolated or no support system
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question 7: Immediate Needs -->
+      <div class="question-container">
+        <label class="question-label">
+          <span class="question-number">7</span>
+          What is your most urgent need right now?
+        </label>
+        <div class="options">
+          <div class="radio-option">
+            <input type="radio" id="q7-a" name="urgent" value="housing" />
+            <label for="q7-a" class="radio-label">
+              <span class="radio-dot"></span>
+              Safe housing
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q7-b" name="urgent" value="food" />
+            <label for="q7-b" class="radio-label">
+              <span class="radio-dot"></span>
+              Food or basic supplies
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q7-c" name="urgent" value="health" />
+            <label for="q7-c" class="radio-label">
+              <span class="radio-dot"></span>
+              Medical care
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q7-d" name="urgent" value="mentalhealth" />
+            <label for="q7-d" class="radio-label">
+              <span class="radio-dot"></span>
+              Mental health support
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="q7-e" name="urgent" value="employment" />
+            <label for="q7-e" class="radio-label">
+              <span class="radio-dot"></span>
+              Job or financial assistance
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        💡 Your answers are confidential and will help us connect you with the most relevant resources.
+      </div>
+
+      <div class="button-group">
+        <button type="button" class="skip-btn" id="skip-btn">Skip for Now</button>
+        <button type="submit" class="submit-btn" id="submit-btn">Complete Assessment</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('questionnaire-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const skipBtn = document.getElementById('skip-btn');
+    const progressFill = document.getElementById('progress');
+
+    const questions = ['housing', 'food', 'health', 'mentalhealth', 'employment', 'support', 'urgent'];
+
+    // Update progress bar
+    form.addEventListener('change', () => {
+      const answered = questions.filter(q => {
+        const checked = document.querySelector(`input[name="${q}"]:checked`);
+        return checked !== null;
+      }).length;
+      const progress = (answered / questions.length) * 100;
+      progressFill.style.width = progress + '%';
+    });
+
+    // Calculate crisis score
+    function calculateCrisisScore() {
+      let score = 0;
+
+      // Housing (0-25 points)
+      const housing = document.querySelector('input[name="housing"]:checked')?.value;
+      if (housing === 'stable') score += 0;
+      else if (housing === 'unstable') score += 15;
+      else if (housing === 'homeless') score += 25;
+
+      // Food (0-20 points)
+      const food = document.querySelector('input[name="food"]:checked')?.value;
+      if (food === 'never') score += 0;
+      else if (food === 'sometimes') score += 10;
+      else if (food === 'often') score += 20;
+
+      // Health (0-15 points)
+      const health = document.querySelector('input[name="health"]:checked')?.value;
+      if (health === 'yes') score += 0;
+      else if (health === 'partial') score += 7;
+      else if (health === 'no') score += 15;
+
+      // Mental Health (0-20 points)
+      const mentalhealth = document.querySelector('input[name="mentalhealth"]:checked')?.value;
+      if (mentalhealth === 'stable') score += 0;
+      else if (mentalhealth === 'struggling') score += 10;
+      else if (mentalhealth === 'crisis') score += 20;
+
+      // Employment (0-10 points)
+      const employment = document.querySelector('input[name="employment"]:checked')?.value;
+      if (employment === 'employed') score += 0;
+      else if (employment === 'seeking') score += 5;
+      else if (employment === 'unable') score += 10;
+
+      // Support (0-10 points)
+      const support = document.querySelector('input[name="support"]:checked')?.value;
+      if (support === 'strong') score += 0;
+      else if (support === 'some') score += 5;
+      else if (support === 'isolated') score += 10;
+
+      return Math.min(score, 100);
+    }
+
+    function getCrisisLevel(score) {
+      if (score < 20) return 'Low';
+      if (score < 40) return 'Moderate';
+      if (score < 70) return 'High';
+      return 'Critical';
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const score = calculateCrisisScore();
+      const level = getCrisisLevel(score);
+
+      // Store assessment results
+      localStorage.setItem('crisis_score', score);
+      localStorage.setItem('crisis_level', level);
+      localStorage.setItem('assessment_responses', JSON.stringify({
+        housing: document.querySelector('input[name="housing"]:checked')?.value,
+        food: document.querySelector('input[name="food"]:checked')?.value,
+        health: document.querySelector('input[name="health"]:checked')?.value,
+        mentalhealth: document.querySelector('input[name="mentalhealth"]:checked')?.value,
+        employment: document.querySelector('input[name="employment"]:checked')?.value,
+        support: document.querySelector('input[name="support"]:checked')?.value,
+        urgent: document.querySelector('input[name="urgent"]:checked')?.value,
+      }));
+
+      // Redirect to React dashboard
+      window.location.href = '/';
+    });
+
+    skipBtn.addEventListener('click', () => {
+      // Set default moderate assessment
+      localStorage.setItem('crisis_score', '40');
+      localStorage.setItem('crisis_level', 'Moderate');
+      window.location.href = '/';
+    });
+  </script>
+</body>
+</html>

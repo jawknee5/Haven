@@ -1,0 +1,12 @@
+[
+  {
+    "id": "snap",
+    "name": "SNAP Food Assistance",
+    "description": "Helps individuals and families buy groceries."
+  },
+  {
+    "id": "housing_assistance",
+    "name": "Housing Assistance",
+    "description": "Support for individuals facing housing instability."
+  }
+]
