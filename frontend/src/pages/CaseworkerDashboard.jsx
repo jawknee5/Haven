@@ -20,10 +20,9 @@ import {
 
 const STATUSES = ["all", "new", "enriched", "routed", "active", "resolved", "closed"];
 
-function Metric({ icon: Icon, label, value, sub, tone = "gold" }) {
+function Metric({ icon: Icon, label, value, sub, tone = "blue" }) {
   const toneMap = {
-    gold: "bg-[#d4af37]/10 text-[#f1d36b] border-[#d4af37]/35",
-    silver: "bg-[#c0c0c0]/10 text-[#e0e0e0] border-[#c0c0c0]/30",
+    blue: "bg-blue-500/10 text-blue-300 border-blue-500/30",
     emerald: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
     amber: "bg-amber-500/10 text-amber-300 border-amber-500/30",
     rose: "bg-rose-500/10 text-rose-300 border-rose-500/30",
@@ -34,8 +33,8 @@ function Metric({ icon: Icon, label, value, sub, tone = "gold" }) {
         <Icon size={16} />
       </div>
       <p className="font-display text-2xl font-semibold mt-3">{value}</p>
-      <p className="text-xs text-[#aab5cf] mt-1">{label}</p>
-      {sub && <p className="text-[10px] text-[#6d7a9a] mt-0.5">{sub}</p>}
+      <p className="text-xs text-zinc-500 mt-1">{label}</p>
+      {sub && <p className="text-[10px] text-zinc-600 mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -112,14 +111,14 @@ export default function CaseworkerDashboard() {
           <Link
             to="/caseworker/bb-browser"
             data-testid="open-bb-browser-btn"
-            className="haven-btn inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full btn-gold haven-glow-gold"
+            className="haven-btn inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full bg-blue-500 hover:bg-blue-400 text-white haven-glow-primary"
           >
             <Globe size={14} /> BB Browser Control
           </Link>
           <Link
             to="/book"
             data-testid="book-session-btn"
-            className="haven-btn inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full btn-outline-navy"
+            className="haven-btn inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full border border-zinc-700/70 hover:bg-zinc-800/60"
           >
             <CalendarClock size={14} /> Book a session
           </Link>
@@ -128,7 +127,7 @@ export default function CaseworkerDashboard() {
     >
       {/* Top metric strip */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Metric icon={Briefcase} label="Total cases" value={analytics?.total_cases ?? "—"} tone="gold" />
+        <Metric icon={Briefcase} label="Total cases" value={analytics?.total_cases ?? "—"} tone="blue" />
         <Metric icon={TrendingUp} label="Active" value={analytics?.active_cases ?? "—"} tone="emerald" />
         <Metric icon={ListTodo} label="Open tasks" value={analytics?.open_tasks ?? "—"} tone="amber" />
         <Metric icon={ShieldAlert} label="High urgency" value={analytics?.high_urgency ?? "—"} tone="rose" />
@@ -140,18 +139,18 @@ export default function CaseworkerDashboard() {
           <div className="haven-card p-4">
             <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-[#d4af37]">Case queue</p>
-                <h2 className="font-serif-haven text-xl font-semibold mt-1">Active caseload</h2>
+                <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-blue-400">Case queue</p>
+                <h2 className="font-display text-xl font-semibold mt-1">Active caseload</h2>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <Search size={13} className="absolute left-2.5 top-2.5 text-[#6d7a9a]" />
+                  <Search size={13} className="absolute left-2.5 top-2.5 text-zinc-500" />
                   <input
                     data-testid="case-search"
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     placeholder="Search…"
-                    className="bg-[#0a142b]/70 border border-[#1d2c4f] rounded-lg pl-8 pr-3 py-1.5 text-sm focus:outline-none focus:border-[#d4af37]/60 w-44"
+                    className="bg-zinc-900/60 border border-zinc-700/60 rounded-lg pl-8 pr-3 py-1.5 text-sm focus:outline-none focus:border-blue-500/60 w-44"
                   />
                 </div>
               </div>
@@ -164,8 +163,8 @@ export default function CaseworkerDashboard() {
                   onClick={() => setFilter(s)}
                   className={`text-xs px-3 py-1 rounded-full border haven-btn capitalize ${
                     filter === s
-                      ? "bg-[#d4af37]/15 border-[#d4af37]/40 text-[#f1d36b]"
-                      : "border-[#1d2c4f] text-[#aab5cf] hover:bg-[#142244]/50"
+                      ? "bg-blue-500/15 border-blue-500/40 text-blue-200"
+                      : "border-zinc-700/60 text-zinc-300 hover:bg-zinc-800/50"
                   }`}
                 >
                   {s}

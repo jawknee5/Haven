@@ -13,9 +13,9 @@ import asyncio
 import base64
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException
 
-from auth import decode_token, get_current_user
+from auth import get_current_user
 from bb_brain import (
     bb_analyze_form_html,
     bb_chat,
@@ -295,10 +295,6 @@ async def browser_action(payload: BBBrowserActionRequest, user: dict = Depends(g
 
 @router.post("/browser/stop")
 async def browser_stop(session_id: str, user: dict = Depends(get_current_user)):
-    # ownership check: session_id format is "bb-browser-<user_id>"
-    expected = f"bb-browser-{user['id']}"
-    if session_id != expected and user["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Not your session")
     await close_session(session_id)
     return {"ok": True}
 
@@ -306,62 +302,3 @@ async def browser_stop(session_id: str, user: dict = Depends(get_current_user)):
 @router.get("/browser/sessions")
 async def browser_sessions(user: dict = Depends(get_current_user)):
     return {"sessions": list_sessions()}
-
-
-
-# ====== WebSocket: live screenshot stream ======
-@router.websocket("/browser/stream/{session_id}")
-async def browser_stream(websocket: WebSocket, session_id: str, token: str = Query(...)):
-    """Live stream of base64 screenshots over WebSocket. Auth via ?token=<JWT>.
-
-    Frame format (JSON):
-      {"type":"frame","url":"...","title":"...","screenshot":"data:image/png;base64,...","ts":"..."}
-      {"type":"info","message":"session not started"}
-      {"type":"error","message":"..."}
-    """
-    # Auth
-    try:
-        payload = decode_token(token)
-        expected = f"bb-browser-{payload['sub']}"
-        if session_id != expected and payload.get("role") != "admin":
-            await websocket.close(code=4403)
-            return
-    except Exception:
-        await websocket.close(code=4401)
-        return
-
-    await websocket.accept()
-    try:
-        last_screenshot = None
-        while True:
-            sess = get_session(session_id)
-            if not sess or sess.page is None:
-                await websocket.send_json({"type": "info", "message": "session-not-started"})
-                await asyncio.sleep(1.0)
-                continue
-            try:
-                async with sess.lock:
-                    screenshot = await sess.screenshot()
-                    url = await sess.url()
-                    title = await sess.title()
-                # Only push when content changes (cheap dedupe)
-                if screenshot != last_screenshot:
-                    last_screenshot = screenshot
-                    await websocket.send_json({
-                        "type": "frame",
-                        "url": url,
-                        "title": title,
-                        "screenshot": screenshot,
-                        "ts": utcnow().isoformat(),
-                    })
-            except Exception as e:  # noqa: BLE001
-                await websocket.send_json({"type": "error", "message": str(e)})
-            # ~2 fps target
-            await asyncio.sleep(0.5)
-    except WebSocketDisconnect:
-        return
-    except Exception:
-        try:
-            await websocket.close()
-        except Exception:
-            pass

@@ -41,53 +41,10 @@ export default function BBBrowserControlPage() {
   const [log, setLog] = useState([]);
   const [cases, setCases] = useState([]);
   const [selectedCaseId, setSelectedCaseId] = useState("");
-  const [streamStatus, setStreamStatus] = useState("idle"); // idle | connecting | live | closed
-  const wsRef = useRef(null);
 
   useEffect(() => {
     api.get("/cases").then((r) => setCases(r.data || [])).catch(() => {});
   }, []);
-
-  // Open WebSocket stream when session starts. Auto-close on stop.
-  useEffect(() => {
-    if (!sessionId) {
-      if (wsRef.current) { try { wsRef.current.close(); } catch (e) {} wsRef.current = null; }
-      setStreamStatus("idle");
-      return;
-    }
-    const token = localStorage.getItem("haven_token");
-    if (!token) return;
-    const wsUrl = BACKEND.replace(/^http/, "ws") + `/api/bb/browser/stream/${encodeURIComponent(sessionId)}?token=${encodeURIComponent(token)}`;
-    setStreamStatus("connecting");
-    pushLog(`Opening live stream → ${sessionId}`, "info");
-    let cancelled = false;
-    try {
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-      ws.onopen = () => { if (!cancelled) { setStreamStatus("live"); pushLog("WebSocket stream live (≈2 fps)", "ok"); } };
-      ws.onmessage = (ev) => {
-        try {
-          const m = JSON.parse(ev.data);
-          if (m.type === "frame") {
-            setScreenshot(m.screenshot || "");
-            setActiveUrl(m.url || "");
-            setTitle(m.title || "");
-          } else if (m.type === "error") {
-            pushLog(`Stream error: ${m.message}`, "err");
-          }
-        } catch (e) { /* ignore */ }
-      };
-      ws.onclose = () => { if (!cancelled) { setStreamStatus("closed"); } };
-      ws.onerror = () => { if (!cancelled) { setStreamStatus("closed"); pushLog("Stream connection error — falling back to polling", "err"); } };
-    } catch (e) {
-      setStreamStatus("closed");
-    }
-    return () => {
-      cancelled = true;
-      if (wsRef.current) { try { wsRef.current.close(); } catch (_) {} wsRef.current = null; }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
 
   function pushLog(line, tone = "info") {
     setLog((l) => [
@@ -217,21 +174,6 @@ export default function BBBrowserControlPage() {
           <div className="haven-card overflow-hidden">
             {/* address bar */}
             <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--haven-border)] bg-[#0d0d10]">
-              <span
-                data-testid="stream-status"
-                className={`inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${
-                  streamStatus === "live"
-                    ? "bg-emerald-500/12 text-emerald-300 border-emerald-500/30"
-                    : streamStatus === "connecting"
-                    ? "bg-amber-500/12 text-amber-300 border-amber-500/30"
-                    : streamStatus === "closed"
-                    ? "bg-rose-500/12 text-rose-300 border-rose-500/30"
-                    : "bg-zinc-500/12 text-zinc-400 border-zinc-500/30"
-                }`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${streamStatus === "live" ? "bg-emerald-300 animate-pulse" : streamStatus === "connecting" ? "bg-amber-300 animate-pulse" : streamStatus === "closed" ? "bg-rose-300" : "bg-zinc-400"}`} />
-                {streamStatus === "live" ? "WS LIVE" : streamStatus === "connecting" ? "WS…" : streamStatus === "closed" ? "WS OFF" : "WS IDLE"}
-              </span>
               <button
                 data-testid="nav-back"
                 disabled={!sessionId || busy}

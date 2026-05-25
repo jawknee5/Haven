@@ -13,46 +13,30 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Users,
-  Layers,
-  ScrollText,
-  Folder,
-  Bell,
-  MessageSquare,
-  Send,
 } from "lucide-react";
 import BBFloatingBubble from "@/components/BBFloatingBubble";
-import BirdMark from "@/components/BirdMark";
-import MobileNav from "@/components/MobileNav";
 
 const NAV_BY_ROLE = {
   caseworker: [
-    { to: "/caseworker", label: "Dashboard", icon: LayoutDashboard, end: true },
+    { to: "/caseworker", label: "Dashboard", icon: LayoutDashboard },
     { to: "/caseworker/bb-browser", label: "BB Browser Control", icon: Globe, accent: true },
     { to: "/caseworker/forms", label: "Form Builder", icon: FileSpreadsheet },
-    { to: "/caseworker/integrations", label: "Agency Bridge", icon: Layers },
     { to: "/resources", label: "Resources", icon: MapIcon },
     { to: "/book", label: "Book a Session", icon: CalendarClock },
     { to: "/crisis", label: "Crisis Support", icon: LifeBuoy, danger: true },
   ],
   resident: [
-    { to: "/resident", label: "My Roadmap", icon: LayoutDashboard, end: true },
-    { to: "/resident/tasks", label: "My Tasks", icon: ListChecks },
-    { to: "/resident/documents", label: "Document Locker", icon: Folder },
-    { to: "/resident/applications", label: "Applications", icon: Send },
-    { to: "/resident/messages", label: "Messages", icon: MessageSquare },
+    { to: "/resident", label: "My Roadmap", icon: LayoutDashboard },
     { to: "/resources", label: "Find Resources", icon: MapIcon },
     { to: "/book", label: "Book a Session", icon: CalendarClock },
     { to: "/crisis", label: "Crisis Support", icon: LifeBuoy, danger: true },
   ],
   admin: [
-    { to: "/admin", label: "Admin Console", icon: LayoutDashboard, end: true },
-    { to: "/admin/users", label: "User Management", icon: Users },
-    { to: "/admin/integrations", label: "Integrations", icon: Layers },
-    { to: "/admin/audit", label: "Audit Log", icon: ScrollText },
+    { to: "/admin", label: "Admin Console", icon: LayoutDashboard },
     { to: "/caseworker", label: "Caseworker View", icon: Briefcase },
     { to: "/caseworker/forms", label: "Form Library", icon: FileSpreadsheet },
     { to: "/resources", label: "Resource Directory", icon: MapIcon },
+    { to: "/book", label: "Book a Session", icon: CalendarClock },
   ],
 };
 
@@ -64,44 +48,44 @@ export default function AppLayout({ children, title, subtitle, actions }) {
 
   return (
     <div className="flex min-h-screen bg-[var(--haven-bg)] text-[var(--haven-text)]">
-      {/* Desktop Sidebar */}
+      {/* Sidebar */}
       <aside
         data-testid="haven-sidebar"
-        className={`${collapsed ? "w-[68px]" : "w-[240px]"} hidden md:flex flex-col border-r border-[var(--haven-border)] bg-[#070f1d]/90 backdrop-blur-xl transition-all duration-200 sticky top-0 h-screen`}
+        className={`${collapsed ? "w-[68px]" : "w-[240px]"} hidden md:flex flex-col border-r border-[var(--haven-border)] bg-[#0c0c0e]/85 backdrop-blur-xl transition-all duration-200 sticky top-0 h-screen`}
       >
         <div className="px-4 py-5 flex items-center justify-between">
-          <Link to="/home" className="flex items-center gap-2 group" data-testid="haven-logo">
-            <BirdMark size={28} />
-            {!collapsed && <span className="font-serif-haven font-semibold tracking-[0.18em] text-lg text-gold">HAVEN</span>}
+          <Link to="/" className="flex items-center gap-2 group" data-testid="haven-logo">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-400 flex items-center justify-center font-display font-bold text-white shadow-lg shadow-blue-500/20">H</div>
+            {!collapsed && <span className="font-display font-semibold tracking-tight text-lg">HAVEN</span>}
           </Link>
           <button
             data-testid="sidebar-toggle"
             onClick={() => setCollapsed((v) => !v)}
-            className="text-zinc-500 hover:text-[#d4af37] transition haven-btn"
+            className="text-zinc-500 hover:text-zinc-200 transition haven-btn"
           >
             {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
         </div>
 
-        <nav className="flex-1 px-3 space-y-1 mt-2 overflow-y-auto">
+        <nav className="flex-1 px-3 space-y-1 mt-2">
           {items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.end}
+              end={item.to === "/caseworker" || item.to === "/resident" || item.to === "/admin"}
               data-testid={`nav-${item.label.replace(/\s+/g, "-").toLowerCase()}`}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition haven-btn ${
                   isActive
-                    ? "bg-[#d4af37]/12 text-[#f1d36b] border border-[#d4af37]/30"
-                    : "text-[#aab5cf] hover:text-zinc-100 hover:bg-[#142244]/60 border border-transparent"
-                } ${item.accent && !isActive ? "ring-1 ring-[#d4af37]/20" : ""} ${item.danger && !isActive ? "text-rose-400/90" : ""}`
+                    ? "bg-blue-500/15 text-blue-300 border border-blue-500/20"
+                    : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 border border-transparent"
+                } ${item.accent && !isActive ? "ring-1 ring-blue-500/20" : ""} ${item.danger && !isActive ? "text-rose-400/90" : ""}`
               }
             >
               <item.icon size={16} className="shrink-0" />
               {!collapsed && <span className="truncate">{item.label}</span>}
               {!collapsed && item.accent && (
-                <span className="ml-auto text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#d4af37]/20 text-[#f1d36b]">
+                <span className="ml-auto text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300">
                   BB
                 </span>
               )}
@@ -133,26 +117,22 @@ export default function AppLayout({ children, title, subtitle, actions }) {
       {/* Main column */}
       <main className="flex-1 min-w-0 flex flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 border-b border-[var(--haven-border)] bg-[#070f1d]/90 backdrop-blur-xl">
-          <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <MobileNav items={items} />
-              <BirdMark size={32} className="hidden sm:block" />
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-[#d4af37]/90">
-                  {user?.role === "caseworker" ? "Caseworker Console" : user?.role === "admin" ? "Admin Console" : user?.role === "resident" ? "My HAVEN" : "HAVEN"}
-                </p>
-                <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-semibold leading-tight mt-0.5 truncate">
-                  {title || "Help has a home."}
-                </h1>
-                {subtitle && <p className="hidden sm:block text-sm text-[#aab5cf] mt-1">{subtitle}</p>}
-              </div>
+        <header className="sticky top-0 z-30 border-b border-[var(--haven-border)] bg-[#0c0c0e]/85 backdrop-blur-xl">
+          <div className="px-5 sm:px-8 py-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-blue-400/80">
+                {user?.role === "caseworker" ? "Caseworker Console" : user?.role === "admin" ? "Admin Console" : user?.role === "resident" ? "My HAVEN" : "HAVEN"}
+              </p>
+              <h1 className="font-display text-2xl sm:text-3xl font-semibold leading-tight mt-0.5">
+                {title || "Help has a home."}
+              </h1>
+              {subtitle && <p className="text-sm text-zinc-400 mt-1">{subtitle}</p>}
             </div>
-            <div className="flex items-center gap-2 flex-wrap justify-end">{actions}</div>
+            <div className="flex items-center gap-2">{actions}</div>
           </div>
         </header>
 
-        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-5 sm:py-6 max-w-[1800px] w-full mx-auto">
+        <div className="flex-1 px-5 sm:px-8 py-6 max-w-[1800px] w-full mx-auto">
           {children}
         </div>
       </main>

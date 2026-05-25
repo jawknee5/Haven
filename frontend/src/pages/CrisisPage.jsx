@@ -27,7 +27,7 @@ export default function CrisisPage() {
   return (
     <div className="min-h-screen">
       <header className="px-6 py-5 flex items-center justify-between border-b border-[var(--haven-border)]">
-        <Link to="/home" className="flex items-center gap-2 text-[#aab5cf] hover:text-[#f1d36b] text-sm">
+        <Link to="/" className="flex items-center gap-2 text-zinc-300 hover:text-white text-sm">
           <ArrowLeft size={14} /> Home
         </Link>
         <button

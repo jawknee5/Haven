@@ -104,7 +104,7 @@ export default function ResourceMapWidget({ height = 320, compact = true, defaul
     <div className="relative haven-card overflow-hidden" data-testid="resource-map-widget">
       <div className="px-4 py-3 flex items-center justify-between border-b border-[var(--haven-border)]">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-[#6d7a9a]">
+          <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-zinc-500">
             Live resource map
           </p>
           <p className="text-sm font-medium text-zinc-100">
@@ -114,7 +114,7 @@ export default function ResourceMapWidget({ height = 320, compact = true, defaul
         <button
           data-testid="snap-to-location-btn"
           onClick={snapToLocation}
-          className="haven-btn flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-[#d4af37]/10 text-[#f1d36b] border border-[#d4af37]/35 hover:bg-[#d4af37]/20"
+          className="haven-btn flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/30 hover:bg-blue-500/20"
         >
           {locating ? <Loader2 size={13} className="animate-spin" /> : <Locate size={13} />}
           {locating ? "Locating…" : "Snap to my location"}
@@ -178,8 +178,8 @@ export default function ResourceMapWidget({ height = 320, compact = true, defaul
           {error}
         </div>
       )}
-      <div className="px-4 py-2 border-t border-[var(--haven-border)] flex flex-wrap gap-3 text-[10px] text-[#aab5cf]">
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm" style={{background:'#d4af37'}} /> You</span>
+      <div className="px-4 py-2 border-t border-[var(--haven-border)] flex flex-wrap gap-3 text-[10px] text-zinc-500">
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-400" /> You</span>
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-blue-500" /> Shelter</span>
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-amber-400" /> Food</span>
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /> Health</span>

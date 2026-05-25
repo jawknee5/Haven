@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import BBChat from "@/components/BBChat";
-import AgencySubmitPanel from "@/components/AgencySubmitPanel";
 import api from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -339,8 +338,6 @@ export default function CaseDetailPage() {
             <TasksPanel caseId={c.id} tasks={data.tasks} refresh={load} />
             <DocsPanel caseId={c.id} docs={data.documents} refresh={load} />
           </div>
-
-          <AgencySubmitPanel caseData={c} />
 
           <MessagesPanel caseId={c.id} messages={data.messages} refresh={load} />
         </div>

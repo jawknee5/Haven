@@ -26,12 +26,12 @@ export default function ResourcesPage() {
   return (
     <div className="min-h-screen">
       <header className="px-6 py-5 flex items-center justify-between border-b border-[var(--haven-border)]">
-        <Link to={user ? `/${user.role}` : "/home"} className="flex items-center gap-2 text-[#aab5cf] hover:text-[#f1d36b] text-sm">
+        <Link to={user ? `/${user.role}` : "/"} className="flex items-center gap-2 text-zinc-300 hover:text-white text-sm">
           <ArrowLeft size={14} /> {user ? "Dashboard" : "Home"}
         </Link>
-        <Link to="/home" className="flex items-center gap-2">
-          <img src="/haven-bird.png" alt="HAVEN" className="h-8 w-auto" />
-          <span className="font-serif-haven font-semibold tracking-[0.18em] text-gold">HAVEN</span>
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-400 flex items-center justify-center font-display font-bold text-white">H</div>
+          <span className="font-display font-semibold tracking-tight">HAVEN</span>
         </Link>
       </header>
       <main className="max-w-7xl mx-auto px-6 py-8 grid lg:grid-cols-12 gap-6">

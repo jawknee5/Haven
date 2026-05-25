@@ -14,8 +14,8 @@ export default function BBFloatingBubble() {
         data-testid="bb-floating-bubble"
         onClick={() => setOpen((v) => !v)}
         aria-label="Open BB"
-        className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-2xl bb-pulse bb-bob flex items-center justify-center font-display font-bold text-[#0a142b] text-lg shadow-2xl"
-        style={{ background: "linear-gradient(135deg, #f1d36b 0%, #d4af37 60%, #9c7a25 100%)" }}
+        className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-2xl bb-pulse bb-bob flex items-center justify-center font-display font-bold text-white text-lg shadow-2xl"
+        style={{ background: "linear-gradient(135deg, #3b82f6 0%, #10b981 100%)" }}
       >
         {open ? <X size={20} /> : <MessageCircleHeart size={22} />}
       </button>
