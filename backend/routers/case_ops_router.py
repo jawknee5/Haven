@@ -58,7 +58,7 @@ async def list_tasks(
 
 
 @router.patch("/tasks/{task_id}")
-async def update_task(task_id: str, payload: TaskUpdate, user: dict = Depends(get_current_user)):
+async def update_task(task_id: str, payload: TaskUpdate, user: dict = Depends(require_role("caseworker", "admin"))):
     updates = {k: v for k, v in payload.model_dump(exclude_none=True).items()}
     if not updates:
         raise HTTPException(status_code=400, detail="No updates")
@@ -92,6 +92,11 @@ async def send_message(payload: MessageCreate, user: dict = Depends(get_current_
 
 @router.get("/messages")
 async def list_messages(case_id: str, user: dict = Depends(get_current_user)):
+    # ownership: residents can only see messages on their own cases
+    if user["role"] == "resident":
+        case = await cases_col.find_one({"id": case_id}, {"_id": 0, "resident_id": 1})
+        if not case or case.get("resident_id") != user["id"]:
+            raise HTTPException(status_code=403, detail="Forbidden")
     docs = await messages_col.find({"case_id": case_id}, {"_id": 0}).sort("created_at", 1).to_list(1000)
     return serialize_list(docs)
 
@@ -126,6 +131,10 @@ async def upload_document(
 
 @router.get("/documents")
 async def list_documents(case_id: str, user: dict = Depends(get_current_user)):
+    if user["role"] == "resident":
+        case = await cases_col.find_one({"id": case_id}, {"_id": 0, "resident_id": 1})
+        if not case or case.get("resident_id") != user["id"]:
+            raise HTTPException(status_code=403, detail="Forbidden")
     docs = await documents_col.find({"case_id": case_id}, {"_id": 0}).sort("created_at", -1).to_list(500)
     return serialize_list(docs)
 

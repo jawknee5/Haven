@@ -295,6 +295,10 @@ async def browser_action(payload: BBBrowserActionRequest, user: dict = Depends(g
 
 @router.post("/browser/stop")
 async def browser_stop(session_id: str, user: dict = Depends(get_current_user)):
+    # ownership check: session_id format is "bb-browser-<user_id>"
+    expected = f"bb-browser-{user['id']}"
+    if session_id != expected and user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not your session")
     await close_session(session_id)
     return {"ok": True}
 
