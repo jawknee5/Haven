@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 
+import BBDemoPage from "@/pages/BBDemoPage";
+import IntroAnimation from "@/pages/IntroAnimation";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import BookPage from "@/pages/BookPage";
@@ -44,9 +46,11 @@ export default function App() {
       <BrowserRouter>
         <div className="App">
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<IntroAnimation />} />
+            <Route path="/home" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/book" element={<BookPage />} />
+            <Route path="/demo" element={<BBDemoPage />} />
             <Route path="/crisis" element={<CrisisPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
 
