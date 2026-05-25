@@ -6,12 +6,12 @@ import { Send, Sparkles, Loader2, X } from "lucide-react";
 function bbAvatar(size = 32) {
   return (
     <div
-      className="rounded-lg flex items-center justify-center font-display font-bold text-white shrink-0"
+      className="rounded-lg flex items-center justify-center font-display font-bold text-[#0a142b] shrink-0"
       style={{
         width: size,
         height: size,
-        background: "linear-gradient(135deg, #3b82f6 0%, #10b981 100%)",
-        boxShadow: "0 4px 14px rgba(59, 130, 246, 0.35)",
+        background: "linear-gradient(135deg, #f1d36b 0%, #d4af37 60%, #9c7a25 100%)",
+        boxShadow: "0 4px 14px rgba(212, 175, 55, 0.4)",
       }}
     >
       BB
@@ -79,13 +79,13 @@ export default function BBChat({ sessionId, contextLabel, defaultMessages, onClo
           {bbAvatar(28)}
           <div>
             <p className="text-sm font-medium">BB</p>
-            <p className="text-[11px] text-zinc-500 flex items-center gap-1">
+            <p className="text-[11px] text-[#aab5cf] flex items-center gap-1">
               <Sparkles size={10} /> Claude Sonnet 4.5 · {contextLabel || "Civic Support"}
             </p>
           </div>
         </div>
         {onClose && (
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-200" data-testid="bb-close-btn">
+          <button onClick={onClose} className="text-[#6d7a9a] hover:text-[#f1d36b]" data-testid="bb-close-btn">
             <X size={16} />
           </button>
         )}
@@ -95,7 +95,7 @@ export default function BBChat({ sessionId, contextLabel, defaultMessages, onClo
         {intro && messages.length === 0 && (
           <div className="flex gap-3 animate-fade-in-up">
             {bbAvatar(28)}
-            <div className="text-sm text-zinc-200 bg-zinc-800/50 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] border border-zinc-700/50">
+            <div className="text-sm text-zinc-200 bg-[#142244]/60 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] border border-[#1d2c4f]">
               {intro}
             </div>
           </div>
@@ -105,15 +105,15 @@ export default function BBChat({ sessionId, contextLabel, defaultMessages, onClo
             {m.role === "assistant" ? (
               bbAvatar(28)
             ) : (
-              <div className="w-7 h-7 rounded-lg bg-zinc-700 text-zinc-200 flex items-center justify-center text-xs font-medium shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[#1d2c4f] text-zinc-200 flex items-center justify-center text-xs font-medium shrink-0">
                 {(user?.name?.[0] || "U").toUpperCase()}
               </div>
             )}
             <div
               className={`text-sm whitespace-pre-wrap leading-relaxed rounded-2xl px-4 py-3 max-w-[85%] ${
                 m.role === "user"
-                  ? "bg-blue-500/15 text-blue-50 border border-blue-500/30 rounded-tr-sm"
-                  : "bg-zinc-800/50 text-zinc-100 border border-zinc-700/50 rounded-tl-sm"
+                  ? "bg-[#d4af37]/12 text-[#f1d36b] border border-[#d4af37]/30 rounded-tr-sm"
+                  : "bg-[#142244]/60 text-zinc-100 border border-[#1d2c4f] rounded-tl-sm"
               }`}
             >
               {m.content}
@@ -128,7 +128,7 @@ export default function BBChat({ sessionId, contextLabel, defaultMessages, onClo
         {busy && (
           <div className="flex gap-3">
             {bbAvatar(28)}
-            <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl px-4 py-3 inline-flex items-center gap-2 text-zinc-400 text-sm">
+            <div className="bg-[#142244]/60 border border-[#1d2c4f] rounded-2xl px-4 py-3 inline-flex items-center gap-2 text-[#aab5cf] text-sm">
               <Loader2 size={13} className="animate-spin" /> BB is thinking…
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function BBChat({ sessionId, contextLabel, defaultMessages, onClo
               key={s}
               data-testid={`bb-suggestion-${s.slice(0, 12).replace(/\s+/g, "-").toLowerCase()}`}
               onClick={() => send(s)}
-              className="text-[11px] px-3 py-1.5 rounded-full border border-zinc-700/60 text-zinc-300 hover:bg-zinc-800/60 transition haven-btn"
+              className="text-[11px] px-3 py-1.5 rounded-full border border-[#1d2c4f] text-[#aab5cf] hover:bg-[#142244]/60 hover:border-[#d4af37]/40 hover:text-[#f1d36b] transition haven-btn"
             >
               {s}
             </button>
@@ -163,13 +163,13 @@ export default function BBChat({ sessionId, contextLabel, defaultMessages, onClo
           }}
           placeholder="Ask BB anything…"
           rows={1}
-          className="flex-1 resize-none bg-zinc-900/60 border border-zinc-700/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20"
+          className="flex-1 resize-none bg-[#0a142b]/70 border border-[#1d2c4f] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#d4af37]/60 focus:ring-2 focus:ring-[#d4af37]/15"
         />
         <button
           data-testid="bb-send-btn"
           onClick={() => send()}
           disabled={busy || !input.trim()}
-          className="haven-btn h-10 px-4 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-400 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+          className="haven-btn h-10 px-4 rounded-xl btn-gold text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
         >
           <Send size={14} /> Send
         </button>

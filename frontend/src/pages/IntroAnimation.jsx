@@ -2,66 +2,75 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 /**
- * HAVEN Login Intro Cinematic — the most important first impression.
+ * HAVEN Intro Cinematic
  *
- * Silver phase (Phase 1) — the user's required pacing:
- *   0      → 2500   : "Stability Starts Here" SLOWLY fades in to fully readable
- *   2500   → 6500   : HOLD 4 seconds at full readability (silver glimmer drifts L→R)
- *   6500   → 9000   : SLOWLY fades out
+ * Sequence (timings in ms from start):
+ *   0     → 2400  : "Stability Starts Here" — silver glistening, fade in L→R, hold, fade out L→R
+ *   2400  → 4400  : Bird only fades in from center
+ *   3600  → 5200  : "Help has a home." gold glistening fades in under the bird
+ *   5200  → 8200  : Hold (3 seconds)
+ *   8200  → 9000  : Bird + tagline fade out
+ *   9000  → 12500 : Full HAVEN logo fades in dramatically under (previously-blank) bird position
+ *   12500 → 16500 : Hold 4 seconds (intentional dramatic dwell)
+ *   16500         : Navigate to login
  *
- * Bird phase (Phase 2) — overlaps from 8000 for a seamless handoff:
- *   8000   → 10000  : Bird halo blooms; bird rises from soft blur into focus
- *   9100   → 12300  : "Help has a home." gold tagline shimmers in beneath the bird
- *   12300  → 15000  : Hold (bird floats gently, halo pulses)
- *   15000  → 16200  : Bird + tagline fade away
- *
- * Logo finale (Phase 3) — overlaps from 15000:
- *   15000  → 18000  : Full HAVEN logo dramatic reveal (blur → focus, glow blooms)
- *   17500  → 19500  : Acronym "Helping · Agencies · Volunteers · & Everyone · Navigate"
- *   19500  → 24000  : Hold — ~4.5s dramatic dwell on the full logo
- *   24000           : onDone fires → login form gracefully fades in
- *
- * Total ~24 seconds. Every American deserves to feel this in full.
+ * If user already authed, we redirect to their dashboard.
+ * "Skip intro" available — accessibility-respectful and respects prefers-reduced-motion.
  */
-export default function IntroAnimation({ onDone, autoNavigate = false }) {
+export default function IntroAnimation() {
   const [phase, setPhase] = useState("stability"); // stability | birdOnly | full | done
   const [skipped, setSkipped] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Respect reduced motion: instantly finish
+    // If user has token, skip intro
+    const token = localStorage.getItem("haven_token");
+    const user = localStorage.getItem("haven_user");
+    if (token && user) {
+      try {
+        const u = JSON.parse(user);
+        navigate(`/${u.role}`, { replace: true });
+        return;
+      } catch {}
+    }
+
+    // Respect reduced motion: skip intro
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      finish(true);
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    const seenRecently = sessionStorage.getItem("haven_intro_seen");
+    if (seenRecently) {
+      navigate("/login", { replace: true });
       return;
     }
 
     const timers = [];
-    timers.push(setTimeout(() => setPhase("birdOnly"), 8000));   // bird rises while silver fades out
-    timers.push(setTimeout(() => setPhase("full"), 15000));      // logo dramatic finale
-    timers.push(setTimeout(() => finish(false), 24000));         // done
+    timers.push(setTimeout(() => setPhase("birdOnly"), 2400));
+    timers.push(setTimeout(() => setPhase("full"), 9000));
+    timers.push(
+      setTimeout(() => {
+        sessionStorage.setItem("haven_intro_seen", "1");
+        navigate("/login", { replace: true });
+      }, 16500)
+    );
     return () => timers.forEach(clearTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  function finish(instant) {
-    setSkipped(true);
-    const delay = instant ? 0 : 600;
-    setTimeout(() => {
-      if (onDone) onDone();
-      else if (autoNavigate) navigate("/login", { replace: true });
-    }, delay);
-  }
+  }, [navigate]);
 
   function skip() {
-    finish(true);
+    setSkipped(true);
+    sessionStorage.setItem("haven_intro_seen", "1");
+    setTimeout(() => navigate("/login", { replace: true }), 250);
   }
 
   return (
-    <div className={`haven-intro ${skipped ? "haven-intro-fading" : ""}`} data-testid="haven-intro">
+    <div className={`haven-intro ${skipped ? "haven-intro-fading" : ""}`}>
+      {/* Starry / depth backdrop */}
       <div className="intro-bg" />
-      <div className="intro-stars" />
       <div className="intro-vignette" />
 
+      {/* Skip button */}
       <button
         data-testid="skip-intro-btn"
         onClick={skip}
@@ -71,22 +80,23 @@ export default function IntroAnimation({ onDone, autoNavigate = false }) {
         Skip intro →
       </button>
 
-      {/* Phase 1: "Stability Starts Here" — slow silver fade-in → 4s readable hold → slow fade-out */}
+      {/* Phase 1: "Stability Starts Here" silver shimmer left→right */}
       <div className={`stage stage-stability ${phase === "stability" ? "is-active" : "is-out"}`}>
-        <h1 className="silver-shimmer" data-testid="intro-stability">
-          {/* No per-letter stagger — the phrase fades in as a whole for readability,
-              then a silver glimmer drifts across during the 4-second hold. */}
-          <span>{"Stability Starts Here."}</span>
+        <h1 className="silver-shimmer">
+          {"Stability Starts Here".split("").map((c, i) => (
+            <span key={i} style={{ animationDelay: `${i * 60}ms` }}>
+              {c === " " ? "\u00A0" : c}
+            </span>
+          ))}
         </h1>
       </div>
 
-      {/* Phase 2: Bird with halo + "Help has a home." */}
+      {/* Phase 2: Bird only */}
       <div
         className={`stage stage-bird ${
           phase === "birdOnly" ? "is-active" : phase === "full" ? "is-fading" : "is-out"
         }`}
       >
-        {phase === "birdOnly" && <div className="bird-halo" aria-hidden="true" />}
         <img
           src="/haven-bird.png"
           alt="HAVEN dove"
@@ -95,27 +105,21 @@ export default function IntroAnimation({ onDone, autoNavigate = false }) {
         />
         <h2 className="gold-shimmer help-tag">
           {"Help has a home.".split("").map((c, i) => (
-            <span key={i} style={{ animationDelay: `${1100 + i * 70}ms` }}>
+            <span key={i} style={{ animationDelay: `${800 + i * 55}ms` }}>
               {c === " " ? "\u00A0" : c}
             </span>
           ))}
         </h2>
       </div>
 
-      {/* Phase 3: Full HAVEN logo dramatic finale */}
+      {/* Phase 3: Full logo dramatic */}
       <div className={`stage stage-full ${phase === "full" ? "is-active" : "is-out"}`}>
-        <div className="full-logo-wrap">
-          <div className="full-logo-glow" aria-hidden="true" />
-          <img
-            src="/haven-logo.png"
-            alt="HAVEN — Helping Agencies, Volunteers, and Everyone Navigate"
-            className="full-logo"
-            data-testid="intro-full-logo"
-          />
-        </div>
-        <p className="full-logo-acronym" data-testid="intro-acronym">
-          Helping&nbsp;&middot;&nbsp;Agencies&nbsp;&middot;&nbsp;Volunteers&nbsp;&middot;&nbsp;&amp;&nbsp;Everyone&nbsp;&middot;&nbsp;Navigate
-        </p>
+        <img
+          src="/haven-logo.png"
+          alt="HAVEN — Helping Agencies, Volunteers, and Everyone Navigate"
+          className="full-logo"
+          data-testid="intro-full-logo"
+        />
       </div>
     </div>
   );

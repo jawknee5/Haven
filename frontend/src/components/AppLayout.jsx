@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import BBFloatingBubble from "@/components/BBFloatingBubble";
+import BirdMark from "@/components/BirdMark";
 
 const NAV_BY_ROLE = {
   caseworker: [
@@ -51,17 +52,17 @@ export default function AppLayout({ children, title, subtitle, actions }) {
       {/* Sidebar */}
       <aside
         data-testid="haven-sidebar"
-        className={`${collapsed ? "w-[68px]" : "w-[240px]"} hidden md:flex flex-col border-r border-[var(--haven-border)] bg-[#0c0c0e]/85 backdrop-blur-xl transition-all duration-200 sticky top-0 h-screen`}
+        className={`${collapsed ? "w-[68px]" : "w-[240px]"} hidden md:flex flex-col border-r border-[var(--haven-border)] bg-[#070f1d]/90 backdrop-blur-xl transition-all duration-200 sticky top-0 h-screen`}
       >
         <div className="px-4 py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group" data-testid="haven-logo">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-400 flex items-center justify-center font-display font-bold text-white shadow-lg shadow-blue-500/20">H</div>
-            {!collapsed && <span className="font-display font-semibold tracking-tight text-lg">HAVEN</span>}
+          <Link to="/home" className="flex items-center gap-2 group" data-testid="haven-logo">
+            <BirdMark size={28} />
+            {!collapsed && <span className="font-serif-haven font-semibold tracking-[0.18em] text-lg text-gold">HAVEN</span>}
           </Link>
           <button
             data-testid="sidebar-toggle"
             onClick={() => setCollapsed((v) => !v)}
-            className="text-zinc-500 hover:text-zinc-200 transition haven-btn"
+            className="text-zinc-500 hover:text-[#d4af37] transition haven-btn"
           >
             {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
@@ -77,15 +78,15 @@ export default function AppLayout({ children, title, subtitle, actions }) {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition haven-btn ${
                   isActive
-                    ? "bg-blue-500/15 text-blue-300 border border-blue-500/20"
-                    : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 border border-transparent"
-                } ${item.accent && !isActive ? "ring-1 ring-blue-500/20" : ""} ${item.danger && !isActive ? "text-rose-400/90" : ""}`
+                    ? "bg-[#d4af37]/12 text-[#f1d36b] border border-[#d4af37]/30"
+                    : "text-[#aab5cf] hover:text-zinc-100 hover:bg-[#142244]/60 border border-transparent"
+                } ${item.accent && !isActive ? "ring-1 ring-[#d4af37]/20" : ""} ${item.danger && !isActive ? "text-rose-400/90" : ""}`
               }
             >
               <item.icon size={16} className="shrink-0" />
               {!collapsed && <span className="truncate">{item.label}</span>}
               {!collapsed && item.accent && (
-                <span className="ml-auto text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300">
+                <span className="ml-auto text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#d4af37]/20 text-[#f1d36b]">
                   BB
                 </span>
               )}
@@ -117,16 +118,19 @@ export default function AppLayout({ children, title, subtitle, actions }) {
       {/* Main column */}
       <main className="flex-1 min-w-0 flex flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 border-b border-[var(--haven-border)] bg-[#0c0c0e]/85 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b border-[var(--haven-border)] bg-[#070f1d]/90 backdrop-blur-xl">
           <div className="px-5 sm:px-8 py-4 flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-blue-400/80">
-                {user?.role === "caseworker" ? "Caseworker Console" : user?.role === "admin" ? "Admin Console" : user?.role === "resident" ? "My HAVEN" : "HAVEN"}
-              </p>
-              <h1 className="font-display text-2xl sm:text-3xl font-semibold leading-tight mt-0.5">
-                {title || "Help has a home."}
-              </h1>
-              {subtitle && <p className="text-sm text-zinc-400 mt-1">{subtitle}</p>}
+            <div className="flex items-center gap-3">
+              <BirdMark size={36} className="hidden sm:block" />
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-[#d4af37]/90">
+                  {user?.role === "caseworker" ? "Caseworker Console" : user?.role === "admin" ? "Admin Console" : user?.role === "resident" ? "My HAVEN" : "HAVEN"}
+                </p>
+                <h1 className="font-display text-2xl sm:text-3xl font-semibold leading-tight mt-0.5">
+                  {title || "Help has a home."}
+                </h1>
+                {subtitle && <p className="text-sm text-[#aab5cf] mt-1">{subtitle}</p>}
+              </div>
             </div>
             <div className="flex items-center gap-2">{actions}</div>
           </div>
