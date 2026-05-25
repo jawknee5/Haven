@@ -14,7 +14,7 @@ HAVEN.
 
 **Creator & Architect**: Johnathan R. Rodriquez (Solo Developer, Sole Inventor)  
 **Status**: Production-Ready Enterprise-Grade  
-**Features**: 6 Engines + BB Intelligence + Military-Grade Security  
+**Features**: 6 Engines + BB Intelligence + State of the art Military-Grade Security  
 
 ## WHAT IS HAVEN?
 
@@ -32,7 +32,8 @@ Haven is an enterprise-grade civic technology platform that connects citizens in
 
 ## 🏗️ SYSTEM OVERVIEW
 
-### Six Core Engines (Designed by Johnathan R. Rodriquez)
+### Six Core Engines (Designed and invented
+ by Johnathan R. Rodriquez)
 
 #### 1. **OTEE** (Omni-Triage Enrichment Engine)
 - AI-powered case analysis using OpenAI GPT-3.5
@@ -50,7 +51,7 @@ Haven is an enterprise-grade civic technology platform that connects citizens in
 - Case assignment with resource binding
 - **Status**: ✅ FULLY FUNCTIONAL
 
-#### 3. **VAULT** (Military-Grade AES-256 Encryption)
+#### 3. **VAULT** (Military-Grade AES-256-GCM authenticated Encryption)
 - Automatic case data encryption (256-bit)
 - Per-record IV generation
 - Authorized decryption on read
