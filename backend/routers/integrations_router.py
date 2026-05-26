@@ -291,6 +291,28 @@ async def list_integrations(user: dict = Depends(get_current_user)):
     return serialize_list(docs)
 
 
+# IMPORTANT: /submissions must be registered BEFORE /{integration_code}
+# so FastAPI's route matcher picks the literal route first.
+@router.get("/submissions")
+async def list_submissions(
+    user: dict = Depends(get_current_user),
+    case_id: Optional[str] = None,
+    integration_code: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    q: dict = {}
+    if case_id:
+        q["case_id"] = case_id
+    if integration_code:
+        q["integration_code"] = integration_code
+    if status:
+        q["status"] = status
+    if user["role"] == "resident":
+        q["resident_id"] = user["id"]
+    docs = await integration_submissions_col.find(q, {"_id": 0}).sort("submitted_at", -1).to_list(500)
+    return serialize_list(docs)
+
+
 @router.get("/{integration_code}")
 async def get_integration(integration_code: str, user: dict = Depends(get_current_user)):
     doc = await integrations_col.find_one({"code": integration_code}, {"_id": 0})
@@ -422,26 +444,6 @@ async def submit_to_agency(body: SubmissionCreate, user: dict = Depends(get_curr
         {"case_id": body.case_id, "confirmation_id": confirmation_id, "status": status, "mode": adapter.mode},
     )
     return serialize_doc(sub)
-
-
-@router.get("/submissions")
-async def list_submissions(
-    user: dict = Depends(get_current_user),
-    case_id: Optional[str] = None,
-    integration_code: Optional[str] = None,
-    status: Optional[str] = None,
-):
-    q: dict = {}
-    if case_id:
-        q["case_id"] = case_id
-    if integration_code:
-        q["integration_code"] = integration_code
-    if status:
-        q["status"] = status
-    if user["role"] == "resident":
-        q["resident_id"] = user["id"]
-    docs = await integration_submissions_col.find(q, {"_id": 0}).sort("submitted_at", -1).to_list(500)
-    return serialize_list(docs)
 
 
 @router.get("/submissions/{submission_id}")
