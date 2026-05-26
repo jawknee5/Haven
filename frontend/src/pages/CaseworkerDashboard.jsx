@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import ResourceMapWidget from "@/components/ResourceMapWidget";
-import CaseNumberWidget from "@/components/CaseNumberWidget";
 import BBChat from "@/components/BBChat";
 import api from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -226,7 +225,6 @@ export default function CaseworkerDashboard() {
         {/* Right column: map + BB chat */}
         <div className="col-span-12 xl:col-span-5 space-y-4">
           <ResourceMapWidget height={300} />
-          <CaseNumberWidget />
           <BBChat sessionId={`bb-cw-${user?.id}`} contextLabel="Caseworker" compact />
         </div>
       </section>

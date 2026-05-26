@@ -21,26 +21,8 @@ from models import (
     new_id,
 )
 import base64
-import json
-import logging
-
-from scanner import scan_document
-from vault import encrypt_field, decrypt_field
-
-logger = logging.getLogger("haven.case_ops")
 
 router = APIRouter(tags=["case-ops"])
-
-SCANNABLE_TYPES = {
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "application/pdf",
-    "text/plain",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-}
-SCANNABLE_EXTS = {"jpg", "jpeg", "png", "webp", "pdf", "txt", "doc", "docx"}
 
 
 # ===== TASKS =====
@@ -147,92 +129,13 @@ async def upload_document(
     return serialize_doc(doc)
 
 
-@router.post("/documents/scan")
-async def scan_and_file_document(
-    case_id: str = Form(...),
-    file: UploadFile = File(...),
-    user: dict = Depends(get_current_user),
-):
-    """Universal Document Scanner: OCR + AI classify + auto-file into the Locker."""
-    ext = (file.filename or "").lower().rsplit(".", 1)[-1] if "." in (file.filename or "") else ""
-    if (file.content_type or "") not in SCANNABLE_TYPES and ext not in SCANNABLE_EXTS:
-        raise HTTPException(status_code=415, detail="Scanner supports JPG, PNG, WEBP, PDF, TXT, DOC, and DOCX only")
-    content = await file.read()
-    if len(content) > 8 * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="File too large (max 8MB)")
-
-    try:
-        result = await scan_document(content, file.content_type, file.filename or "")
-    except Exception as e:
-        logger.exception("Document scan failed")
-        msg = str(e)
-        if "Budget has been exceeded" in msg:
-            raise HTTPException(status_code=402, detail="AI scan unavailable: Universal Key balance is empty. Top up at Profile → Universal Key.")
-        raise HTTPException(status_code=500, detail=f"BB couldn't read this document: {msg[:200]}")
-
-    key_fields = result.get("key_fields") or {}
-    extracted_text = result.get("extracted_text") or ""
-    vault_payload = encrypt_field(
-        json.dumps({"key_fields": key_fields, "extracted_text": extracted_text}),
-        resource_type="document_extraction",
-    )
-
-    data_url = f"data:{file.content_type};base64," + base64.b64encode(content).decode("ascii")
-    doc = Document(
-        case_id=case_id,
-        uploaded_by=user["id"],
-        type=result["category"],
-        filename=file.filename or "scan",
-        content_type=file.content_type or "application/octet-stream",
-        size=len(content),
-        data_url=data_url,
-        scanned=True,
-        classification=result["category"],
-        confidence=result["confidence"],
-        extracted_summary=result.get("summary") or "",
-        extracted_vault=vault_payload,
-        expiration_date=result.get("expiration_date"),
-        notes=result.get("title") or "",
-    ).model_dump()
-    await documents_col.insert_one(doc)
-
-    saved = serialize_doc(doc)
-    saved.pop("extracted_vault", None)
-    return {
-        "document": saved,
-        "classification": result["category"],
-        "confidence": result["confidence"],
-        "title": result.get("title"),
-        "summary": result.get("summary"),
-        "key_fields": key_fields,
-        "is_legible": result.get("is_legible", True),
-    }
-
-
-@router.get("/documents/{doc_id}/extracted")
-async def get_extracted_data(doc_id: str, user: dict = Depends(get_current_user)):
-    """Decrypt Apex Vault extraction for the document owner or staff."""
-    doc = await documents_col.find_one({"id": doc_id}, {"_id": 0})
-    if not doc:
-        raise HTTPException(status_code=404, detail="Document not found")
-    if user["role"] == "resident" and doc.get("uploaded_by") != user["id"]:
-        raise HTTPException(status_code=403, detail="Forbidden")
-    if not doc.get("extracted_vault"):
-        raise HTTPException(status_code=404, detail="No extracted data for this document")
-    try:
-        data = json.loads(decrypt_field(doc["extracted_vault"]))
-    except Exception:
-        raise HTTPException(status_code=500, detail="Vault decryption failed")
-    return {"doc_id": doc_id, **data}
-
-
 @router.get("/documents")
 async def list_documents(case_id: str, user: dict = Depends(get_current_user)):
     if user["role"] == "resident":
         case = await cases_col.find_one({"id": case_id}, {"_id": 0, "resident_id": 1})
         if not case or case.get("resident_id") != user["id"]:
             raise HTTPException(status_code=403, detail="Forbidden")
-    docs = await documents_col.find({"case_id": case_id}, {"_id": 0, "extracted_vault": 0}).sort("created_at", -1).to_list(500)
+    docs = await documents_col.find({"case_id": case_id}, {"_id": 0}).sort("created_at", -1).to_list(500)
     return serialize_list(docs)
 
 

@@ -52,7 +52,7 @@ export default function ApplicationsPage() {
           <button key={f} data-testid={`app-filter-${f}`} onClick={() => setFilter(f)} className={`text-xs px-3 py-1 rounded-full border haven-btn capitalize ${filter === f ? "bg-[#d4af37]/15 border-[#d4af37]/40 text-[#f1d36b]" : "border-[#1d2c4f] text-[#aab5cf]"}`}>{f.replace("_", " ")}</button>
         ))}
       </div>
-      {loading && <div className="grid gap-3">{[...Array(3)].map((_, i) => <div key={`sk-${i}`} className="h-28 rounded-xl shimmer" />)}</div>}
+      {loading && <div className="grid gap-3">{[...Array(3)].map((_, i) => <div key={i} className="h-28 rounded-xl shimmer" />)}</div>}
       <div className="space-y-3">
         {filtered.map((s) => {
           const Icon = STATUS_ICON[s.status] || Send;
@@ -85,7 +85,7 @@ export default function ApplicationsPage() {
                   <p className="text-[10px] uppercase tracking-wider text-[#aab5cf] mb-2">Timeline</p>
                   <ul className="space-y-1">
                     {s.timeline.slice(-4).reverse().map((tl, idx) => (
-                      <li key={`${tl.ts}-${tl.event}-${idx}`} className="text-xs text-[#aab5cf] flex items-start gap-2">
+                      <li key={idx} className="text-xs text-[#aab5cf] flex items-start gap-2">
                         <span className="font-mono text-[10px] text-zinc-500 shrink-0">{new Date(tl.ts).toLocaleString()}</span>
                         <span className="capitalize text-zinc-200">{tl.event.replace("_", " ")}</span>
                         <span className="text-zinc-400">— {tl.detail}</span>

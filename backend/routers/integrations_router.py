@@ -291,28 +291,6 @@ async def list_integrations(user: dict = Depends(get_current_user)):
     return serialize_list(docs)
 
 
-# IMPORTANT: /submissions must be registered BEFORE /{integration_code}
-# so FastAPI's route matcher picks the literal route first.
-@router.get("/submissions")
-async def list_submissions(
-    user: dict = Depends(get_current_user),
-    case_id: Optional[str] = None,
-    integration_code: Optional[str] = None,
-    status: Optional[str] = None,
-):
-    q: dict = {}
-    if case_id:
-        q["case_id"] = case_id
-    if integration_code:
-        q["integration_code"] = integration_code
-    if status:
-        q["status"] = status
-    if user["role"] == "resident":
-        q["resident_id"] = user["id"]
-    docs = await integration_submissions_col.find(q, {"_id": 0}).sort("submitted_at", -1).to_list(500)
-    return serialize_list(docs)
-
-
 @router.get("/{integration_code}")
 async def get_integration(integration_code: str, user: dict = Depends(get_current_user)):
     doc = await integrations_col.find_one({"code": integration_code}, {"_id": 0})
@@ -446,6 +424,26 @@ async def submit_to_agency(body: SubmissionCreate, user: dict = Depends(get_curr
     return serialize_doc(sub)
 
 
+@router.get("/submissions")
+async def list_submissions(
+    user: dict = Depends(get_current_user),
+    case_id: Optional[str] = None,
+    integration_code: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    q: dict = {}
+    if case_id:
+        q["case_id"] = case_id
+    if integration_code:
+        q["integration_code"] = integration_code
+    if status:
+        q["status"] = status
+    if user["role"] == "resident":
+        q["resident_id"] = user["id"]
+    docs = await integration_submissions_col.find(q, {"_id": 0}).sort("submitted_at", -1).to_list(500)
+    return serialize_list(docs)
+
+
 @router.get("/submissions/{submission_id}")
 async def get_submission(submission_id: str, user: dict = Depends(get_current_user)):
     doc = await integration_submissions_col.find_one({"id": submission_id}, {"_id": 0})
@@ -557,9 +555,10 @@ async def oauth_start(integration_code: str, user: dict = Depends(require_role("
         )
     adapter = get_adapter(integ)
     state = new_id()
-    redirect_uri = os.environ.get("OAUTH_REDIRECT_URI")
-    if not redirect_uri:
-        raise HTTPException(status_code=500, detail="OAUTH_REDIRECT_URI is not configured")
+    redirect_uri = os.environ.get(
+        "OAUTH_REDIRECT_URI",
+        "https://haven-dashboard-1.preview.emergentagent.com/api/integrations/oauth/callback",
+    )
     url = await adapter.get_authorize_url(redirect_uri=redirect_uri, state=state)
     if not url:
         raise HTTPException(status_code=500, detail="Adapter could not build authorize URL")
@@ -581,9 +580,10 @@ async def oauth_callback(code: str, state: str):
     if not integ:
         raise HTTPException(status_code=404, detail="Integration not found")
     adapter = get_adapter(integ)
-    redirect_uri = os.environ.get("OAUTH_REDIRECT_URI")
-    if not redirect_uri:
-        raise HTTPException(status_code=500, detail="OAUTH_REDIRECT_URI is not configured")
+    redirect_uri = os.environ.get(
+        "OAUTH_REDIRECT_URI",
+        "https://haven-dashboard-1.preview.emergentagent.com/api/integrations/oauth/callback",
+    )
     try:
         tokens = await adapter.exchange_code(code, redirect_uri)
     except Exception as e:

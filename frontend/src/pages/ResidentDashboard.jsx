@@ -5,11 +5,9 @@ import BBChat from "@/components/BBChat";
 import ResourceMapWidget from "@/components/ResourceMapWidget";
 import api from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { getTodaysDrill } from "@/data/quickDrills";
-import CaseNumberWidget from "@/components/CaseNumberWidget";
 import {
   MessageSquare, ListChecks, MapPin, CalendarClock, ArrowRight, LifeBuoy,
-  Folder, Send, Bell, ShieldCheck, CheckCircle2, AlertTriangle, BookOpen, Sparkles,
+  Folder, Send, Bell, ShieldCheck, CheckCircle2, AlertTriangle,
 } from "lucide-react";
 
 function StepCard({ n, title, body, href, status }) {
@@ -43,8 +41,7 @@ export default function ResidentDashboard() {
       setCases(c.data || []);
       setNotifications(n.data || { unread: 0, items: [] });
       setApplications(a.data || []);
-    }).catch((err) => console.error("Failed to load resident dashboard:", err));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -144,38 +141,9 @@ export default function ResidentDashboard() {
 
         <div className="col-span-12 xl:col-span-5 space-y-4">
           <ResourceMapWidget height={300} />
-          <CaseNumberWidget />
-          <QuickDrillCard />
           <BBChat sessionId={`bb-res-${user?.id}`} contextLabel="Resident" compact />
         </div>
       </div>
     </AppLayout>
-  );
-}
-
-function QuickDrillCard() {
-  const drill = getTodaysDrill();
-  const href = `/survival-bible?askbb=1&ask=${encodeURIComponent(drill.ask)}`;
-  return (
-    <Link
-      to={href}
-      data-testid="bb-quick-drill-card"
-      className="haven-card p-4 block hover:border-[#d4af37]/45 transition haven-btn relative overflow-hidden"
-    >
-      <div
-        className="absolute -right-6 -top-6 w-28 h-28 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle at center, rgba(241,211,107,0.18), transparent 70%)" }}
-      />
-      <div className="flex items-center gap-2 mb-1 relative">
-        <Sparkles size={13} className="text-[#d4af37]" />
-        <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-[#d4af37]">
-          Today&apos;s BB Drill
-        </p>
-      </div>
-      <p className="font-display text-base font-medium text-zinc-100 relative">{drill.title}</p>
-      <p className="mt-2 text-xs text-[#aab5cf] inline-flex items-center gap-1 relative">
-        <BookOpen size={11} /> Learn it with BB <ArrowRight size={11} />
-      </p>
-    </Link>
   );
 }

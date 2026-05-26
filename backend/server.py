@@ -22,8 +22,6 @@ load_dotenv(ROOT_DIR / ".env")
 from browser_engine import close_all_sessions  # noqa: E402
 from database import db  # noqa: E402
 from routers.admin_router import router as admin_router  # noqa: E402
-from routers.architect_router import router as architect_router  # noqa: E402
-from routers.integration_request_router import router as integration_request_router  # noqa: E402
 from routers.auth_router import router as auth_router  # noqa: E402
 from routers.bb_router import router as bb_router  # noqa: E402
 from routers.case_ops_router import router as case_ops_router  # noqa: E402
@@ -63,57 +61,7 @@ async def root():
 
 @api_router.get("/health")
 async def health():
-    """Full health status — includes DB + BB brain (Ollama) readiness."""
-    components: dict = {"api": {"status": "healthy"}}
-    # DB
-    try:
-        await db.command("ping")
-        components["database"] = {"status": "healthy"}
-    except Exception as e:
-        components["database"] = {"status": "unhealthy", "error": str(e)[:120]}
-    # BB brain (Ollama primary, Emergent fallback)
-    try:
-        import httpx
-        from bb_brain import OLLAMA_URL, OLLAMA_MODEL, EMERGENT_LLM_KEY
-        try:
-            async with httpx.AsyncClient(timeout=2.0) as client:
-                r = await client.get(f"{OLLAMA_URL}/api/tags")
-                r.raise_for_status()
-                tags = r.json().get("models", [])
-                has_model = any(OLLAMA_MODEL.split(":")[0] in (m.get("name") or "") for m in tags)
-                components["bb_brain"] = {
-                    "status": "healthy",
-                    "engine": "ollama",
-                    "model": OLLAMA_MODEL,
-                    "model_ready": has_model,
-                }
-        except Exception:
-            components["bb_brain"] = {
-                "status": "degraded" if EMERGENT_LLM_KEY else "unhealthy",
-                "engine": "emergent_llm_fallback" if EMERGENT_LLM_KEY else "none",
-            }
-    except Exception as e:
-        components["bb_brain"] = {"status": "unknown", "error": str(e)[:120]}
-
-    overall = "healthy" if all(c.get("status") == "healthy" for c in components.values()) else "degraded"
-    return {"status": overall, "service": "haven-backend", "components": components}
-
-
-@api_router.get("/health/live")
-async def health_live():
-    """Liveness probe — service is running."""
-    return {"alive": True}
-
-
-@api_router.get("/health/ready")
-async def health_ready():
-    """Readiness probe — DB is reachable."""
-    try:
-        await db.command("ping")
-        return {"ready": True, "db": "connected"}
-    except Exception as e:
-        from fastapi.responses import JSONResponse
-        return JSONResponse(status_code=503, content={"ready": False, "db": "disconnected", "error": str(e)[:120]})
+    return {"status": "ok", "service": "haven-backend"}
 
 
 # Mount all routers
@@ -125,8 +73,6 @@ api_router.include_router(forms_resources_router)
 api_router.include_router(bb_router)
 api_router.include_router(integrations_router)
 api_router.include_router(admin_router)
-api_router.include_router(architect_router)
-api_router.include_router(integration_request_router)
 api_router.include_router(notifications_router)
 
 app.include_router(api_router)

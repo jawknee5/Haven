@@ -138,12 +138,6 @@ class Document(BaseModel):
     verified: bool = False
     verified_by: Optional[str] = None
     notes: Optional[str] = None
-    scanned: bool = False
-    classification: Optional[str] = None
-    confidence: Optional[float] = None
-    extracted_summary: Optional[str] = None
-    extracted_vault: Optional[dict] = None
-    expiration_date: Optional[str] = None
     created_at: str = Field(default_factory=lambda: utcnow().isoformat())
 
 

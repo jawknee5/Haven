@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Locate, Loader2 } from "lucide-react";
 import api from "@/lib/api";
-import { CAMPING_AS_MAP_RESOURCES } from "@/data/camping";
 
 // Distinct user marker (animated pulse "You are here")
 const userIcon = L.divIcon({
@@ -21,7 +20,6 @@ const TYPE_GLYPH = {
   legal: "§",
   employment: "💼",
   childcare: "★",
-  camping: "⛺",
 };
 
 function resourceIcon(type) {
@@ -64,7 +62,7 @@ function MapHandle({ register, doubleTapEnabled }) {
   return null;
 }
 
-export default function ResourceMapWidget({ height = 320, compact = true, defaultCenter = [37.3382, -121.8863], onResourceClick }) {
+export default function ResourceMapWidget({ height = 320, compact = true, defaultCenter = [37.3382, -121.8863] }) {
   const [resources, setResources] = useState([]);
   const [userPos, setUserPos] = useState(null);
   const [locating, setLocating] = useState(false);
@@ -74,13 +72,8 @@ export default function ResourceMapWidget({ height = 320, compact = true, defaul
   useEffect(() => {
     api
       .get("/resources")
-      .then((r) => {
-        const live = Array.isArray(r.data) ? r.data : [];
-        // Surface the camping resources alongside the live API resources so
-        // they appear on the main map as well as the dedicated Camping page.
-        setResources([...live, ...CAMPING_AS_MAP_RESOURCES]);
-      })
-      .catch(() => setResources([...CAMPING_AS_MAP_RESOURCES]));
+      .then((r) => setResources(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setResources([]));
   }, []);
 
   function snapToLocation() {
@@ -145,7 +138,7 @@ export default function ResourceMapWidget({ height = 320, compact = true, defaul
           <MapHandle register={(m) => (mapRef.current = m)} doubleTapEnabled />
 
           {resources.map((r) => (
-            <Marker key={r.id} position={[r.lat, r.lng]} icon={resourceIcon(r.type)} eventHandlers={onResourceClick ? { click: () => onResourceClick(r) } : undefined}>
+            <Marker key={r.id} position={[r.lat, r.lng]} icon={resourceIcon(r.type)}>
               <Popup>
                 <div className="text-zinc-100 text-sm space-y-1 min-w-[220px]">
                   <p className="font-medium">{r.name}</p>
@@ -193,7 +186,6 @@ export default function ResourceMapWidget({ height = 320, compact = true, defaul
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-red-600" /> Crisis</span>
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-violet-500" /> Legal</span>
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-cyan-500" /> Employment</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-400" /> Camping</span>
       </div>
     </div>
   );

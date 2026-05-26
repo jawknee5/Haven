@@ -226,7 +226,6 @@ body {
 .res-legal { background: #8b5cf6; }
 .res-employment { background: #06b6d4; }
 .res-childcare { background: #ec4899; }
-.res-camping { background: #10b981; }
 
 /* Leaflet dark tweaks */
 .leaflet-container {
@@ -270,7 +269,6 @@ body {
 
 /* ============================================================
    HAVEN INTRO — Cinematic pre-login sequence
-   Total runtime ~20.6s (slowed 25% — every American should remember this).
    ============================================================ */
 .haven-intro {
     position: fixed;
@@ -279,44 +277,18 @@ body {
     background: radial-gradient(ellipse at center, #0d1a36 0%, #050a17 70%, #02050d 100%);
     z-index: 100;
 }
-.haven-intro-fading { opacity: 0; transition: opacity 0.5s ease; }
+.haven-intro-fading { opacity: 0; transition: opacity 0.3s ease; }
 
 .intro-bg {
     position: absolute; inset: 0;
     background-image:
-      radial-gradient(circle at 12% 18%, rgba(212, 175, 55, 0.08), transparent 38%),
-      radial-gradient(circle at 86% 80%, rgba(192, 192, 192, 0.06), transparent 40%),
-      radial-gradient(circle at 50% 100%, rgba(212, 175, 55, 0.05), transparent 55%);
-    pointer-events: none;
-    animation: bg-breathe 12s ease-in-out infinite;
-}
-@keyframes bg-breathe {
-    0%, 100% { opacity: 0.85; }
-    50% { opacity: 1; }
-}
-/* Drifting starfield / sparkles */
-.intro-stars {
-    position: absolute; inset: 0;
-    background-image:
-      radial-gradient(1px 1px at 12% 24%, rgba(255,255,255,0.55) 50%, transparent 51%),
-      radial-gradient(1px 1px at 28% 78%, rgba(255,255,255,0.4) 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 52% 12%, rgba(212,175,55,0.5) 50%, transparent 51%),
-      radial-gradient(1px 1px at 71% 62%, rgba(255,255,255,0.45) 50%, transparent 51%),
-      radial-gradient(1px 1px at 88% 38%, rgba(212,175,55,0.4) 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 33% 48%, rgba(255,255,255,0.3) 50%, transparent 51%),
-      radial-gradient(1px 1px at 64% 88%, rgba(255,255,255,0.4) 50%, transparent 51%);
-    background-repeat: no-repeat;
-    animation: stars-twinkle 5s ease-in-out infinite;
+      radial-gradient(circle at 12% 18%, rgba(212, 175, 55, 0.05), transparent 35%),
+      radial-gradient(circle at 86% 80%, rgba(192, 192, 192, 0.04), transparent 38%);
     pointer-events: none;
 }
-@keyframes stars-twinkle {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
-}
-
 .intro-vignette {
     position: absolute; inset: 0;
-    background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.65) 100%);
     pointer-events: none;
 }
 .intro-skip {
@@ -324,20 +296,19 @@ body {
     bottom: 24px;
     right: 24px;
     z-index: 10;
-    background: rgba(5, 10, 23, 0.6);
-    border: 1px solid rgba(192, 192, 192, 0.3);
+    background: transparent;
+    border: 1px solid rgba(192, 192, 192, 0.35);
     color: rgba(192, 192, 192, 0.85);
-    font-size: 11px;
-    letter-spacing: 0.12em;
+    font-size: 12px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 9px 18px;
+    padding: 8px 16px;
     border-radius: 9999px;
     cursor: pointer;
-    transition: all 0.25s ease;
-    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
 }
 .intro-skip:hover {
-    background: rgba(212, 175, 55, 0.1);
+    background: rgba(192, 192, 192, 0.1);
     border-color: rgba(212, 175, 55, 0.7);
     color: #f1d36b;
 }
@@ -349,128 +320,79 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: opacity 1.25s ease;
+    transition: opacity 1s ease;
 }
 .stage.is-out { opacity: 0; pointer-events: none; }
 .stage.is-active { opacity: 1; }
-.stage.is-fading { opacity: 0; transition: opacity 1s ease; }
+.stage.is-fading { opacity: 0; transition: opacity 0.8s ease; }
 
-/* === Silver glimmering text (Phase 1)
-   Slow fade in → 4s hold (with subtle silver glimmer pass) → slow fade out === */
+/* === Silver shimmer text === */
 .silver-shimmer {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-weight: 500;
-    /* Calibrated to "STABILITY STARTS HERE." (22 chars) so it never clips at
-       any viewport — clamped between a comfortable mobile size and a wide-
-       screen size that still leaves generous side breathing room. */
-    font-size: clamp(1.6rem, 4.6vw, 4.4rem);
-    letter-spacing: 0.10em;
+    font-size: clamp(2.2rem, 6.5vw, 5.5rem);
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     display: flex;
-    gap: 0.02em;
+    gap: 0.04em;
     flex-wrap: nowrap;
     white-space: nowrap;
     text-align: center;
     line-height: 1.2;
     margin: 0;
-    padding: 0 6vw;
-    max-width: 100vw;
-    box-sizing: border-box;
 }
 .silver-shimmer > span {
     display: inline-block;
-    /* Polished silver base with a glimmer band that drifts across during the hold */
     background: linear-gradient(120deg,
-      #9aa3b4 0%,
-      #d9dde3 22%,
-      #ffffff 35%,
-      #f5f6f8 50%,
-      #d9dde3 65%,
-      #9aa3b4 100%);
+      rgba(192, 192, 192, 0) 0%,
+      rgba(192, 192, 192, 1) 25%,
+      rgba(255, 255, 255, 1) 50%,
+      rgba(192, 192, 192, 1) 75%,
+      rgba(192, 192, 192, 0) 100%);
     background-size: 220% 100%;
-    background-position: 100% 0;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     opacity: 0;
-    /* Three-phase animation:
-       1) silver-fade-in       — 2500ms (slow read-in)
-       2) silver-glimmer-pass  — 4000ms (the glimmer drifts L→R during the hold)
-       3) silver-fade-out      — 2500ms (slow fade out after the hold)
-       Stagger via inline animation-delay per letter for a graceful sweep. */
-    animation:
-      silver-fade-in 2500ms cubic-bezier(0.22, 1, 0.36, 1) forwards,
-      silver-glimmer-pass 4000ms ease-in-out 2500ms 1 forwards,
-      silver-fade-out 2500ms cubic-bezier(0.4, 0, 0.4, 1) 6500ms forwards;
-    text-shadow:
-      0 0 14px rgba(220, 224, 232, 0.18),
-      0 0 28px rgba(180, 188, 200, 0.10);
+    animation: letter-shimmer-in 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+               letter-shimmer-out 0.9s ease 1800ms forwards;
 }
-@keyframes silver-fade-in {
-    0%   { opacity: 0; transform: translateY(6px); }
-    100% { opacity: 1; transform: translateY(0); }
+@keyframes letter-shimmer-in {
+    0% { opacity: 0; background-position: 100% 0; transform: translateY(8px); }
+    40% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 1; background-position: -100% 0; transform: translateY(0); }
 }
-@keyframes silver-glimmer-pass {
-    /* Keep opacity 1 the whole time — this is the "hold" phase.
-       Drift the silver gradient across the letters for a polished glimmer. */
-    0%   { opacity: 1; background-position: 100% 0; }
-    100% { opacity: 1; background-position: -100% 0; }
-}
-@keyframes silver-fade-out {
-    0%   { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-4px); }
+@keyframes letter-shimmer-out {
+    from { opacity: 1; }
+    to { opacity: 0; transform: translateX(20px); }
 }
 
-/* === Bird-only stage (Phase 2) — 2s in, then float ===
-   The PNG now has a true transparent background so the bird blends
-   seamlessly into the cinematic backdrop (no tacky box). */
+/* === Bird only stage === */
 .bird-only {
-    width: clamp(200px, 30vw, 400px);
+    width: clamp(180px, 28vw, 360px);
     height: auto;
     opacity: 0;
-    animation: bird-fade-in 2s cubic-bezier(0.22, 1, 0.36, 1) forwards,
-               bird-hover 5s ease-in-out 2s infinite;
-    filter: drop-shadow(0 14px 40px rgba(212, 175, 55, 0.4));
+    animation: bird-fade-in 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+               bird-hover 4s ease-in-out 1.6s infinite;
+    filter: drop-shadow(0 12px 32px rgba(212, 175, 55, 0.35));
 }
 @keyframes bird-fade-in {
-    from { opacity: 0; transform: scale(0.6); filter: blur(6px) drop-shadow(0 14px 40px rgba(212, 175, 55, 0)); }
-    to   { opacity: 1; transform: scale(1); filter: blur(0) drop-shadow(0 14px 40px rgba(212, 175, 55, 0.4)); }
+    from { opacity: 0; transform: scale(0.7); }
+    to   { opacity: 1; transform: scale(1); }
 }
 @keyframes bird-hover {
     0%, 100% { transform: translateY(0) scale(1); }
-    50%      { transform: translateY(-10px) scale(1.02); }
+    50%      { transform: translateY(-8px) scale(1.015); }
 }
 
-/* Halo behind the bird */
-.bird-halo {
-    position: absolute;
-    width: clamp(380px, 55vw, 720px);
-    height: clamp(380px, 55vw, 720px);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.06) 40%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-    opacity: 0;
-    animation: halo-breathe 4s ease-out 600ms forwards, halo-pulse 6s ease-in-out 2500ms infinite;
-}
-@keyframes halo-breathe {
-    from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
-    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-@keyframes halo-pulse {
-    0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
-    50%      { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
-}
-
-/* === Gold shimmer tagline === */
+/* === Gold shimmer text === */
 .gold-shimmer {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-weight: 600;
     font-style: italic;
-    font-size: clamp(1.8rem, 4.6vw, 3.8rem);
+    font-size: clamp(1.6rem, 4.2vw, 3.4rem);
     letter-spacing: 0.04em;
-    margin-top: 1.6rem;
+    margin-top: 1.4rem;
     line-height: 1.2;
 }
 .gold-shimmer > span {
@@ -486,84 +408,28 @@ body {
     background-clip: text;
     color: transparent;
     opacity: 0;
-    animation: gold-shimmer-in 2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    text-shadow: 0 0 30px rgba(212, 175, 55, 0.15);
+    animation: gold-shimmer-in 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 @keyframes gold-shimmer-in {
-    0%   { opacity: 0; background-position: 100% 0; transform: translateY(8px); }
+    0%   { opacity: 0; background-position: 100% 0; transform: translateY(6px); }
     100% { opacity: 1; background-position: -100% 0; transform: translateY(0); }
 }
 
 .help-tag { text-align: center; }
 
-/* === Full HAVEN logo dramatic reveal (Phase 3) === */
-.stage-full {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
-}
-.full-logo-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.full-logo-glow {
-    position: absolute;
-    inset: -8%;
-    background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.28) 0%, rgba(212, 175, 55, 0.1) 35%, transparent 65%);
-    filter: blur(20px);
-    opacity: 0;
-    animation: logo-glow-in 3.5s ease-out 200ms forwards, logo-glow-pulse 5s ease-in-out 3.7s infinite;
-    pointer-events: none;
-}
-@keyframes logo-glow-in {
-    from { opacity: 0; transform: scale(0.6); }
-    to   { opacity: 1; transform: scale(1); }
-}
-@keyframes logo-glow-pulse {
-    0%, 100% { opacity: 0.85; }
-    50%      { opacity: 1; }
-}
+/* === Full logo dramatic reveal === */
 .full-logo {
-    width: clamp(320px, 58vw, 820px);
+    width: clamp(280px, 50vw, 720px);
     height: auto;
     opacity: 0;
-    transform: scale(0.9);
-    animation: logo-dramatic-in 3s cubic-bezier(0.22, 1, 0.36, 1) forwards,
-               logo-float 8s ease-in-out 3s infinite;
-    filter: drop-shadow(0 30px 80px rgba(212, 175, 55, 0.35));
-    position: relative;
-    z-index: 2;
+    transform: scale(0.92);
+    animation: logo-dramatic-in 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    filter: drop-shadow(0 24px 64px rgba(212, 175, 55, 0.3));
 }
 @keyframes logo-dramatic-in {
-    0%   { opacity: 0; transform: scale(0.9); filter: blur(10px) drop-shadow(0 30px 80px rgba(212, 175, 55, 0)); }
-    50%  { opacity: 0.7; transform: scale(0.96); }
-    100% { opacity: 1; transform: scale(1); filter: blur(0) drop-shadow(0 30px 80px rgba(212, 175, 55, 0.35)); }
-}
-@keyframes logo-float {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50%      { transform: translateY(-6px) scale(1.005); }
-}
-.full-logo-acronym {
-    font-family: 'Inter', 'Helvetica Neue', sans-serif;
-    font-size: clamp(0.7rem, 1.1vw, 0.95rem);
-    letter-spacing: 0.42em;
-    text-transform: uppercase;
-    color: rgba(212, 175, 55, 0.78);
-    opacity: 0;
-    animation: acronym-fade-in 2s ease-out 2.5s forwards;
-    text-align: center;
-    line-height: 1.7;
-    max-width: 90vw;
-}
-@keyframes acronym-fade-in {
-    from { opacity: 0; transform: translateY(8px); letter-spacing: 0.6em; }
-    to   { opacity: 1; transform: translateY(0); letter-spacing: 0.42em; }
+    0%   { opacity: 0; transform: scale(0.92); filter: blur(8px) drop-shadow(0 24px 64px rgba(212, 175, 55, 0)); }
+    50%  { opacity: 0.7; }
+    100% { opacity: 1; transform: scale(1); filter: blur(0) drop-shadow(0 24px 64px rgba(212, 175, 55, 0.3)); }
 }
 
 /* ====== Reusable bird mark for every page ====== */
@@ -593,21 +459,6 @@ body {
         animation-duration: 0.001ms !important;
         transition-duration: 0.001ms !important;
     }
-}
-
-/* Login form graceful entry after the cinematic */
-.login-fade-in {
-    animation: login-fade-in 1.1s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes login-fade-in {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Constrain logo size on small viewports so it doesn't dwarf the form on mobile */
-.login-logo-col img { max-width: 100%; }
-@media (max-width: 1023px) {
-    .login-logo-col img { max-width: 360px; }
 }
 
 @layer base {

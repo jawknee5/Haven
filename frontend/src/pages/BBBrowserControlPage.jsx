@@ -45,13 +45,13 @@ export default function BBBrowserControlPage() {
   const wsRef = useRef(null);
 
   useEffect(() => {
-    api.get("/cases").then((r) => setCases(r.data || [])).catch((e) => console.warn("Failed to load cases:", e));
+    api.get("/cases").then((r) => setCases(r.data || [])).catch(() => {});
   }, []);
 
   // Open WebSocket stream when session starts. Auto-close on stop.
   useEffect(() => {
     if (!sessionId) {
-      if (wsRef.current) { try { wsRef.current.close(); } catch (e) { console.debug("WS close:", e); } wsRef.current = null; }
+      if (wsRef.current) { try { wsRef.current.close(); } catch (e) {} wsRef.current = null; }
       setStreamStatus("idle");
       return;
     }
@@ -75,7 +75,7 @@ export default function BBBrowserControlPage() {
           } else if (m.type === "error") {
             pushLog(`Stream error: ${m.message}`, "err");
           }
-        } catch (e) { console.debug("Ignoring malformed stream frame:", e); }
+        } catch (e) { /* ignore */ }
       };
       ws.onclose = () => { if (!cancelled) { setStreamStatus("closed"); } };
       ws.onerror = () => { if (!cancelled) { setStreamStatus("closed"); pushLog("Stream connection error — falling back to polling", "err"); } };
@@ -84,7 +84,7 @@ export default function BBBrowserControlPage() {
     }
     return () => {
       cancelled = true;
-      if (wsRef.current) { try { wsRef.current.close(); } catch (e) { console.debug("WS close:", e); } wsRef.current = null; }
+      if (wsRef.current) { try { wsRef.current.close(); } catch (_) {} wsRef.current = null; }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);

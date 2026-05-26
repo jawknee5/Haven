@@ -111,9 +111,7 @@ export default function IntegrationsPage({ adminMode = false }) {
         (r.data || []).map((i) => api.get(`/integrations/${i.code}/oauth/meta`).then((x) => [i.code, x.data]).catch(() => [i.code, null]))
       );
       setOauthMetas(Object.fromEntries(metas.filter(([_, v]) => v)));
-    } catch (err) {
-      console.error("Failed to load integrations:", err);
-    }
+    } catch { /* ignore */ }
     finally { setLoading(false); }
   }
   useEffect(() => { load(); }, []);
@@ -180,7 +178,7 @@ export default function IntegrationsPage({ adminMode = false }) {
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => <div key={`integ-sk-${i}`} className="h-56 rounded-xl shimmer" />)}
+          {[...Array(6)].map((_, i) => <div key={i} className="h-56 rounded-xl shimmer" />)}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

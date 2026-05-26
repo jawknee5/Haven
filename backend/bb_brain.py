@@ -1,4 +1,4 @@
-"""BB's AI brain — primary: local Ollama (no credit cost); fallback: Emergent Universal LLM key.
+"""BB's AI brain — powered by Claude Sonnet 4.5 via Emergent Universal LLM key.
 
 BB is HAVEN's intelligent civic-support assistant. She is empathetic, decisive,
 context-aware, and capable of analyzing forms, suggesting autofills, detecting
@@ -7,27 +7,14 @@ crises, and guiding both residents and caseworkers.
 from __future__ import annotations
 
 import json
-import logging
 import os
 import re
 from typing import Any, Optional
 
-import httpx
 from emergentintegrations.llm.chat import LlmChat, UserMessage
-
-logger = logging.getLogger("haven.bb")
 
 EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
 DEFAULT_MODEL = ("anthropic", "claude-sonnet-4-5-20250929")
-
-# Ollama config — primary brain (local, free)
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
-OLLAMA_TIMEOUT = float(os.environ.get("OLLAMA_TIMEOUT", "90"))
-
-# In-memory chat history per session (Ollama is stateless per request)
-_HISTORY: dict[str, list[dict]] = {}
-_HISTORY_MAX_TURNS = 12  # keep last N messages per session
 
 
 BB_SYSTEM_BASE = """You are BB — the intelligent civic-support assistant inside HAVEN (Helping Agencies, Volunteers, and Everyone Navigate).
@@ -56,35 +43,6 @@ Behavior rules:
 - If you detect a crisis (suicide/self-harm, immediate danger, child safety, imminent eviction within 72 hours), surface it clearly and recommend the appropriate hotline AND a HAVEN action.
 - For caseworkers, default to operational language: case IDs, action items, document checklists, deadlines.
 - For residents, default to plain-language guidance: what happens next, why we ask, what they'll need.
-
-You also serve as HAVEN's SURVIVAL BIBLE expert. You can give step-by-step instructions on:
-- Water: finding, filtering (sand/gravel/charcoal), boiling (1 min / 3 min above 6,500 ft),
-  chemical treatment (bleach 2-8 drops/gallon, 30 min), SODIS solar disinfection (6+ hrs clear bottle).
-- Food: foraging safety (never eat unidentified plants, avoid milky sap except dandelion,
-  avoid umbrella flowers like hemlock), edible wild plants (dandelion, chickweed, clover,
-  cattails, acorns leached).
-- Shelter: lean-to, debris hut, A-frame, snow cave, tarp configurations; insulation principles
-  (off ground first, then layers).
-- Fire: bow drill (spindle, hearth board, bearing block, bow), tinder bundle prep,
-  feather sticks, lay patterns (teepee, log cabin, lean-to), maintenance.
-- First aid: bleeding control (direct pressure → tourniquet), CPR (30:2), burn care
-  (cool water 20 min, no ice), hypothermia (passive→active rewarming), heat illness,
-  fracture splinting, wound cleaning.
-- Navigation: shadow-stick method, Polaris (Northern Hemisphere), Southern Cross,
-  natural compass clues (moss on north side is unreliable—use sun angle and prevailing winds),
-  map+compass declination.
-- Weather: cloud reading (cumulonimbus → storm soon), barometric cues, lightning safety (30/30 rule),
-  hypo/hyperthermia thresholds.
-- Tools: 10 essential items (knife, fire, water container, cordage, tarp/poncho, first aid,
-  light, navigation, signal, food), knife maintenance, batoning, cordage from natural fiber.
-- Wilderness knots: bowline, square/reef, clove hitch, taut-line hitch, figure-8, sheet bend,
-  trucker's hitch, prusik, double fisherman, alpine butterfly — give numbered steps and a memory trick.
-- Psychology: STOP method (Stop, Think, Observe, Plan), survival priorities (positive mental
-  attitude > shelter > water > fire > food), pacing & sleep, group dynamics.
-
-When a resident asks "how do I…", give numbered steps with practical, doable language.
-Add safety warnings where lives are at stake (water/fire/first aid). Cite a follow-up:
-"Open the Survival Bible chapter on X for more detail."
 """
 
 
@@ -110,68 +68,26 @@ def _build_role_system(role: str, extra_context: Optional[dict] = None) -> str:
     return "\n\n".join(parts)
 
 
-async def _ollama_chat(session_id: str, system: str, user_message: str) -> str:
-    """Call local Ollama server. Raises on failure so caller can fall back."""
-    history = _HISTORY.setdefault(session_id, [])
-    messages = [{"role": "system", "content": system}]
-    messages.extend(history[-_HISTORY_MAX_TURNS:])
-    messages.append({"role": "user", "content": user_message})
-
-    async with httpx.AsyncClient(timeout=OLLAMA_TIMEOUT) as client:
-        r = await client.post(
-            f"{OLLAMA_URL}/api/chat",
-            json={"model": OLLAMA_MODEL, "messages": messages, "stream": False},
-        )
-        r.raise_for_status()
-        data = r.json()
-        reply = (data.get("message") or {}).get("content", "").strip()
-        if not reply:
-            raise RuntimeError("Ollama returned empty content")
-
-    history.append({"role": "user", "content": user_message})
-    history.append({"role": "assistant", "content": reply})
-    # cap history
-    if len(history) > _HISTORY_MAX_TURNS * 2:
-        del history[: len(history) - _HISTORY_MAX_TURNS * 2]
-    return reply
-
-
-async def _emergent_chat(session_id: str, system: str, user_message: str) -> str:
-    """Fallback: Emergent Universal LLM key (Claude Sonnet)."""
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=session_id,
-        system_message=system,
-    ).with_model(*DEFAULT_MODEL)
-    msg = UserMessage(text=user_message)
-    response = await chat.send_message(msg)
-    return str(response)
-
-
 async def bb_chat(
     session_id: str,
     user_message: str,
     role: str = "resident",
     context: Optional[dict] = None,
 ) -> str:
-    """Send a message to BB. Tries Ollama first, falls back to Emergent LLM key."""
-    system = _build_role_system(role, context)
-
-    # 1) Try Ollama (local, no credits)
+    """Send a message to BB and get a contextual response."""
+    if not EMERGENT_LLM_KEY:
+        return _fallback_response(user_message, role)
     try:
-        return await _ollama_chat(session_id, system, user_message)
-    except Exception as e:
-        logger.info(f"Ollama unavailable, falling back to Emergent LLM: {e}")
-
-    # 2) Fallback to Emergent Universal LLM key
-    if EMERGENT_LLM_KEY:
-        try:
-            return await _emergent_chat(session_id, system, user_message)
-        except Exception as e:  # pragma: no cover
-            logger.warning(f"Emergent LLM failed: {e}")
-            return _fallback_response(user_message, role, error=str(e))
-
-    return _fallback_response(user_message, role)
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message=_build_role_system(role, context),
+        ).with_model(*DEFAULT_MODEL)
+        msg = UserMessage(text=user_message)
+        response = await chat.send_message(msg)
+        return str(response)
+    except Exception as e:  # pragma: no cover
+        return _fallback_response(user_message, role, error=str(e))
 
 
 async def bb_intro(role: str, name: Optional[str] = None) -> str:

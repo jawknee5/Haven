@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
 import { Loader2, ArrowLeft } from "lucide-react";
-import IntroAnimation from "@/pages/IntroAnimation";
 
 const DEMO_ACCOUNTS = [
   { label: "Caseworker", email: "caseworker@haven.demo", password: "Demo2026!" },
@@ -21,33 +20,18 @@ export default function LoginPage() {
   const [role, setRole] = useState("resident");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-  const { login, register, user } = useAuth();
-
-  // Intro plays on the login screen — the most critical first impression.
-  // Only skip if user is already authenticated, came from "?skipIntro=1", or has seen it this session.
-  const skipIntroParam = params.get("skipIntro") === "1";
-  const seenThisSession = typeof window !== "undefined" && sessionStorage.getItem("haven_intro_seen") === "1";
-  const [showIntro, setShowIntro] = useState(!user && !skipIntroParam && !seenThisSession);
-
-  useEffect(() => {
-    if (user) navigate(user.role === "architect" ? "/architect" : `/${user.role}`, { replace: true });
-  }, [user, navigate]);
-
-  function handleIntroDone() {
-    try { sessionStorage.setItem("haven_intro_seen", "1"); } catch (err) { console.warn("sessionStorage unavailable:", err); }
-    setShowIntro(false);
-  }
+  const { login, register } = useAuth();
 
   async function handleSubmit(e) {
     e?.preventDefault();
     setErr("");
     setBusy(true);
     try {
-      const u =
+      const user =
         mode === "login"
           ? await login(email, password)
           : await register({ email, password, name, role });
-      navigate(u.role === "architect" ? "/architect" : `/${u.role}`);
+      navigate(`/${user.role}`);
     } catch (e) {
       setErr(e?.response?.data?.detail || "Something went wrong");
     } finally {
@@ -62,7 +46,7 @@ export default function LoginPage() {
     setBusy(true);
     try {
       const u = await login(acc.email, acc.password);
-      navigate(u.role === "architect" ? "/architect" : `/${u.role}`);
+      navigate(`/${u.role}`);
     } catch (e) {
       setErr(e?.response?.data?.detail || "Login failed");
     } finally {
@@ -70,168 +54,128 @@ export default function LoginPage() {
     }
   }
 
-  if (showIntro) {
-    return <IntroAnimation onDone={handleIntroDone} />;
-  }
-
   return (
-    <div className="min-h-screen bg-[var(--haven-bg)] text-[var(--haven-text)] flex flex-col login-fade-in relative overflow-hidden">
-      {/* Subtle starfield carried over from intro for visual continuity */}
-      <div className="intro-bg pointer-events-none fixed inset-0 opacity-60" />
-      <div className="intro-stars pointer-events-none fixed inset-0 opacity-50" />
-
-      {/* Soft golden glow behind the centered logo */}
-      <div
-        className="pointer-events-none fixed left-1/2 top-1/4 -translate-x-1/2 w-[900px] h-[600px] hidden lg:block"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.04) 40%, transparent 70%)",
-        }}
-      />
-
-      <header className="px-6 py-4 flex items-center justify-between relative z-10">
-        <Link
-          to="/home"
-          className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-200 transition haven-btn"
-        >
-          <ArrowLeft size={14} /> Home
+    <div className="min-h-screen flex flex-col">
+      <header className="px-6 py-5 flex items-center justify-between">
+        <Link to="/home" className="flex items-center gap-2 text-[#aab5cf] hover:text-[#f1d36b] text-sm">
+          <ArrowLeft size={14} /> Back home
         </Link>
-        <Link to="/?skipIntro=0" onClick={() => sessionStorage.removeItem("haven_intro_seen")} className="text-xs text-zinc-500 hover:text-[#f1d36b] transition">
-          Replay intro
+        <Link to="/home" className="flex items-center gap-2" data-testid="login-logo">
+          <img src="/haven-bird.png" alt="HAVEN" className="h-8 w-auto" />
+          <span className="font-serif-haven font-semibold tracking-[0.18em] text-gold">HAVEN</span>
         </Link>
       </header>
 
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 px-6 lg:px-16 py-6 lg:py-10 relative z-10 items-center max-w-[1600px] w-full mx-auto">
-        {/* LEFT — big HAVEN logo + tagline */}
-        <section className="flex flex-col items-center lg:items-end justify-center text-center lg:text-right login-logo-col">
-          <div className="relative w-full max-w-[520px] lg:max-w-[640px] mx-auto lg:mx-0">
-            <div
-              className="absolute inset-[-12%] pointer-events-none"
-              style={{
-                background:
-                  "radial-gradient(ellipse at center, rgba(212,175,55,0.22) 0%, rgba(212,175,55,0.08) 35%, transparent 70%)",
-                filter: "blur(28px)",
-              }}
-            />
-            <img
-              src="/haven-logo.png"
-              alt="HAVEN — Helping Agencies, Volunteers, and Everyone Navigate"
-              className="relative w-full h-auto drop-shadow-[0_28px_72px_rgba(212,175,55,0.38)]"
-              data-testid="login-haven-logo"
-            />
-          </div>
-          <p className="mt-6 text-[10px] uppercase tracking-[0.42em] text-[#d4af37]/85">
-            Helping &middot; Agencies &middot; Volunteers &middot; &amp; Everyone &middot; Navigate
+      <main className="flex-1 flex items-center justify-center px-6 py-10">
+        <div className="w-full max-w-md">
+          <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-[#d4af37] text-center">Help has a home.</p>
+          <h1 className="font-serif-haven text-3xl font-semibold tracking-tight text-center mt-2">
+            {mode === "login" ? "Welcome back" : "Create your account"}
+          </h1>
+          <p className="text-sm text-[#aab5cf] text-center mt-2">
+            {mode === "login" ? "Sign in to continue." : "It's free and takes a minute."}
           </p>
-          <p className="mt-3 font-display italic text-2xl sm:text-3xl text-[#f1d36b]/90 max-w-md">
-            Help has a home.
-          </p>
-          <p className="mt-4 text-sm text-[#aab5cf] max-w-md leading-relaxed hidden lg:block">
-            Stability starts here. Sign in to continue your case, connect with your caseworker, and
-            track every application across federal, state, and county agencies.
-          </p>
-        </section>
 
-        {/* RIGHT — login form */}
-        <section className="flex justify-center lg:justify-start">
-          <div className="w-full max-w-md">
-            <div className="haven-card p-6 sm:p-8 backdrop-blur-xl bg-[#070f1d]/85">
-              <div className="flex border-b border-[var(--haven-border)] mb-5">
-                <button
-                  data-testid="tab-login"
-                  onClick={() => setMode("login")}
-                  className={`flex-1 py-2 text-sm font-medium transition haven-btn ${mode === "login" ? "text-[#f1d36b] border-b-2 border-[#d4af37]" : "text-zinc-500"}`}
-                >Sign in</button>
-                <button
-                  data-testid="tab-register"
-                  onClick={() => setMode("register")}
-                  className={`flex-1 py-2 text-sm font-medium transition haven-btn ${mode === "register" ? "text-[#f1d36b] border-b-2 border-[#d4af37]" : "text-zinc-500"}`}
-                >Create account</button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-3">
-                {mode === "register" && (
-                  <>
-                    <input
-                      data-testid="name-input"
-                      required
-                      type="text"
-                      placeholder="Full name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-[#0a142b]/70 border border-[#1d2c4f] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#d4af37]/60"
-                    />
-                    <select
-                      data-testid="role-select"
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                      className="w-full bg-[#0a142b]/70 border border-[#1d2c4f] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#d4af37]/60"
-                    >
-                      <option value="resident">I'm a resident seeking help</option>
-                      <option value="caseworker">I'm a caseworker</option>
-                    </select>
-                  </>
-                )}
-                <input
-                  data-testid="email-input"
-                  required
-                  type="email"
-                  placeholder="Email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#0a142b]/70 border border-[#1d2c4f] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#d4af37]/60"
-                />
-                <input
-                  data-testid="password-input"
-                  required
-                  type="password"
-                  placeholder="Password"
-                  autoComplete={mode === "login" ? "current-password" : "new-password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#0a142b]/70 border border-[#1d2c4f] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#d4af37]/60"
-                />
-                {err && <p data-testid="login-error" className="text-xs text-rose-400">{err}</p>}
-                <button
-                  data-testid="submit-btn"
-                  type="submit"
-                  disabled={busy}
-                  className="haven-btn btn-gold w-full rounded-full py-2.5 text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {busy && <Loader2 size={14} className="animate-spin" />}
-                  {mode === "login" ? "Sign in" : "Create account"}
-                </button>
-              </form>
-
-              <div className="mt-6 pt-5 border-t border-[var(--haven-border)]">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[#aab5cf] mb-3 text-center">
-                  Demo accounts — one click
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  {DEMO_ACCOUNTS.map((acc) => (
-                    <button
-                      key={acc.email}
-                      data-testid={`demo-${acc.label.toLowerCase()}`}
-                      onClick={() => loginAs(acc)}
-                      disabled={busy}
-                      className="haven-btn btn-outline-navy text-xs rounded-full py-1.5 disabled:opacity-50"
-                    >
-                      {acc.label}
-                    </button>
-                  ))}
+          <form onSubmit={handleSubmit} className="haven-card p-6 mt-6 space-y-4">
+            {mode === "register" && (
+              <>
+                <div>
+                  <label className="text-xs text-[#aab5cf]">Full name</label>
+                  <input
+                    data-testid="register-name-input"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="mt-1 w-full bg-[#0a142b]/70 border border-[#1d2c4f] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d4af37]/60"
+                    placeholder="First Last"
+                  />
                 </div>
-                <p className="text-[10px] text-zinc-500 mt-3 text-center">
-                  Password for all demos: <span className="font-mono">Demo2026!</span>
-                </p>
-              </div>
+                <div>
+                  <label className="text-xs text-[#aab5cf]">I am a…</label>
+                  <div className="grid grid-cols-3 gap-2 mt-1">
+                    {["resident", "caseworker", "admin"].map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        data-testid={`role-${r}`}
+                        onClick={() => setRole(r)}
+                        className={`haven-btn text-xs py-2 rounded-lg capitalize border ${
+                          role === r ? "bg-[#d4af37]/15 border-[#d4af37]/40 text-[#f1d36b]" : "border-[#1d2c4f] text-[#aab5cf] hover:bg-[#142244]/50"
+                        }`}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+            <div>
+              <label className="text-xs text-[#aab5cf]">Email</label>
+              <input
+                data-testid="login-email-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1 w-full bg-[#0a142b]/70 border border-[#1d2c4f] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d4af37]/60"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#aab5cf]">Password</label>
+              <input
+                data-testid="login-password-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="mt-1 w-full bg-[#0a142b]/70 border border-[#1d2c4f] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#d4af37]/60"
+                placeholder="••••••••"
+              />
             </div>
 
-            <p className="text-center text-[11px] text-zinc-500 mt-6">
-              Helping Agencies, Volunteers, and Everyone Navigate
-            </p>
+            {err && <p className="text-xs text-rose-300 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">{err}</p>}
+
+            <button
+              data-testid="login-submit-btn"
+              type="submit"
+              disabled={busy}
+              className="haven-btn w-full py-2.5 rounded-lg btn-gold haven-glow-gold flex items-center justify-center gap-2"
+            >
+              {busy && <Loader2 size={14} className="animate-spin" />}
+              {mode === "login" ? "Sign in" : "Create account"}
+            </button>
+
+            <button
+              data-testid="toggle-mode-btn"
+              type="button"
+              onClick={() => setMode(mode === "login" ? "register" : "login")}
+              className="text-xs text-[#aab5cf] hover:text-[#f1d36b] w-full text-center"
+            >
+              {mode === "login" ? "Need an account? Register" : "Have an account? Sign in"}
+            </button>
+          </form>
+
+          <div className="mt-6">
+            <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-[#6d7a9a] text-center mb-3">Demo accounts</p>
+            <div className="grid grid-cols-3 gap-2">
+              {DEMO_ACCOUNTS.map((a) => (
+                <button
+                  key={a.label}
+                  data-testid={`demo-login-${a.label.toLowerCase()}`}
+                  onClick={() => loginAs(a)}
+                  disabled={busy}
+                  className="haven-btn text-xs py-2 rounded-lg border border-[#1d2c4f] hover:bg-[#142244]/50 hover:border-[#d4af37]/40 disabled:opacity-50"
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-[#6d7a9a] text-center mt-2">All demo passwords: <span className="font-mono text-[#d4af37]/80">Demo2026!</span></p>
           </div>
-        </section>
+        </div>
       </main>
     </div>
   );

@@ -20,9 +20,6 @@ import {
   Bell,
   MessageSquare,
   Send,
-  BookOpen,
-  Tent,
-  Crown,
 } from "lucide-react";
 import BBFloatingBubble from "@/components/BBFloatingBubble";
 import BirdMark from "@/components/BirdMark";
@@ -35,8 +32,6 @@ const NAV_BY_ROLE = {
     { to: "/caseworker/forms", label: "Form Builder", icon: FileSpreadsheet },
     { to: "/caseworker/integrations", label: "Agency Bridge", icon: Layers },
     { to: "/resources", label: "Resources", icon: MapIcon },
-    { to: "/camping", label: "Camping", icon: Tent },
-    { to: "/survival-bible", label: "Survival Bible", icon: BookOpen },
     { to: "/book", label: "Book a Session", icon: CalendarClock },
     { to: "/crisis", label: "Crisis Support", icon: LifeBuoy, danger: true },
   ],
@@ -47,23 +42,11 @@ const NAV_BY_ROLE = {
     { to: "/resident/applications", label: "Applications", icon: Send },
     { to: "/resident/messages", label: "Messages", icon: MessageSquare },
     { to: "/resources", label: "Find Resources", icon: MapIcon },
-    { to: "/camping", label: "Camping", icon: Tent },
-    { to: "/survival-bible", label: "Survival Bible", icon: BookOpen },
     { to: "/book", label: "Book a Session", icon: CalendarClock },
     { to: "/crisis", label: "Crisis Support", icon: LifeBuoy, danger: true },
   ],
   admin: [
     { to: "/admin", label: "Admin Console", icon: LayoutDashboard, end: true },
-    { to: "/admin/users", label: "User Management", icon: Users },
-    { to: "/admin/integrations", label: "Integrations", icon: Layers },
-    { to: "/admin/audit", label: "Audit Log", icon: ScrollText },
-    { to: "/caseworker", label: "Caseworker View", icon: Briefcase },
-    { to: "/caseworker/forms", label: "Form Library", icon: FileSpreadsheet },
-    { to: "/resources", label: "Resource Directory", icon: MapIcon },
-  ],
-  architect: [
-    { to: "/architect", label: "The Architect", icon: Crown, accent: true, end: true },
-    { to: "/admin", label: "Admin Console", icon: LayoutDashboard },
     { to: "/admin/users", label: "User Management", icon: Users },
     { to: "/admin/integrations", label: "Integrations", icon: Layers },
     { to: "/admin/audit", label: "Audit Log", icon: ScrollText },
