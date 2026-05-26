@@ -53,7 +53,8 @@ export default function App() {
       <BrowserRouter>
         <div className="App">
           <Routes>
-            <Route path="/" element={<IntroAnimation />} />
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/intro" element={<IntroAnimation autoNavigate />} />
             <Route path="/home" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/book" element={<BookPage />} />
