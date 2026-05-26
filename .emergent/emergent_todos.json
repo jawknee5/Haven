@@ -1,0 +1,30 @@
+[
+  {
+    "content": "WebSocket: backend /api/bb/browser/stream endpoint streaming screenshots",
+    "status": "in_progress"
+  },
+  {
+    "content": "Frontend: BB Browser Control consumes WebSocket stream",
+    "status": "pending"
+  },
+  {
+    "content": "OAuth/SAML adapter architecture (per-agency adapters, env-driven live/sim switch)",
+    "status": "pending"
+  },
+  {
+    "content": "OAuth start/callback endpoints for agency connections",
+    "status": "pending"
+  },
+  {
+    "content": "Admin Integrations console: connection state + 'Connect via OAuth' button",
+    "status": "pending"
+  },
+  {
+    "content": "Run testing_agent_v3 backend-only E2E",
+    "status": "pending"
+  },
+  {
+    "content": "Fix any issues found",
+    "status": "pending"
+  }
+]
