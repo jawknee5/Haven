@@ -226,6 +226,7 @@ body {
 .res-legal { background: #8b5cf6; }
 .res-employment { background: #06b6d4; }
 .res-childcare { background: #ec4899; }
+.res-camping { background: #10b981; }
 
 /* Leaflet dark tweaks */
 .leaflet-container {
@@ -359,16 +360,22 @@ body {
 .silver-shimmer {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-weight: 500;
-    font-size: clamp(2.4rem, 7vw, 6rem);
-    letter-spacing: 0.14em;
+    /* Calibrated to "STABILITY STARTS HERE." (22 chars) so it never clips at
+       any viewport — clamped between a comfortable mobile size and a wide-
+       screen size that still leaves generous side breathing room. */
+    font-size: clamp(1.6rem, 4.6vw, 4.4rem);
+    letter-spacing: 0.10em;
     text-transform: uppercase;
     display: flex;
-    gap: 0.04em;
+    gap: 0.02em;
     flex-wrap: nowrap;
     white-space: nowrap;
     text-align: center;
     line-height: 1.2;
     margin: 0;
+    padding: 0 6vw;
+    max-width: 100vw;
+    box-sizing: border-box;
 }
 .silver-shimmer > span {
     display: inline-block;

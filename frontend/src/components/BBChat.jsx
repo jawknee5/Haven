@@ -6,15 +6,21 @@ import { Send, Sparkles, Loader2, X } from "lucide-react";
 function bbAvatar(size = 32) {
   return (
     <div
-      className="rounded-lg flex items-center justify-center font-display font-bold text-[#0a142b] shrink-0"
+      className="rounded-full flex items-center justify-center shrink-0 overflow-hidden"
       style={{
         width: size,
         height: size,
-        background: "linear-gradient(135deg, #f1d36b 0%, #d4af37 60%, #9c7a25 100%)",
-        boxShadow: "0 4px 14px rgba(212, 175, 55, 0.4)",
+        background: "radial-gradient(circle at 35% 30%, rgba(241,211,107,0.55), rgba(212,175,55,0.15) 65%, transparent 80%)",
+        boxShadow: "0 4px 14px rgba(212, 175, 55, 0.35)",
       }}
+      data-testid="bb-avatar"
     >
-      BB
+      <img
+        src="/haven-bird-sm.png"
+        alt="BB"
+        style={{ width: size * 0.9, height: size * 0.9, objectFit: "contain" }}
+        draggable={false}
+      />
     </div>
   );
 }
@@ -70,7 +76,7 @@ export default function BBChat({ sessionId, contextLabel, defaultMessages, onClo
     ? ["Summarize my highest-urgency cases", "Draft a follow-up message to a resident", "Help me fill an agency form"]
     : (user?.role === "admin")
     ? ["System health snapshot", "Capacity alerts", "Onboard a new caseworker"]
-    : ["I need emergency housing", "Help me find food today", "What benefits do I qualify for?"];
+    : ["I need emergency housing", "Help me find food today", "How do I purify water?", "Show me how to tie a bowline"];
 
   return (
     <div className={`flex flex-col haven-card ${compact ? "h-[420px]" : "h-full"}`} data-testid="bb-chat">

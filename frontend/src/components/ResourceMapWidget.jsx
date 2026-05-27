@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Locate, Loader2 } from "lucide-react";
 import api from "@/lib/api";
+import { CAMPING_AS_MAP_RESOURCES } from "@/data/camping";
 
 // Distinct user marker (animated pulse "You are here")
 const userIcon = L.divIcon({
@@ -20,6 +21,7 @@ const TYPE_GLYPH = {
   legal: "§",
   employment: "💼",
   childcare: "★",
+  camping: "⛺",
 };
 
 function resourceIcon(type) {
@@ -72,8 +74,13 @@ export default function ResourceMapWidget({ height = 320, compact = true, defaul
   useEffect(() => {
     api
       .get("/resources")
-      .then((r) => setResources(Array.isArray(r.data) ? r.data : []))
-      .catch(() => setResources([]));
+      .then((r) => {
+        const live = Array.isArray(r.data) ? r.data : [];
+        // Surface the camping resources alongside the live API resources so
+        // they appear on the main map as well as the dedicated Camping page.
+        setResources([...live, ...CAMPING_AS_MAP_RESOURCES]);
+      })
+      .catch(() => setResources([...CAMPING_AS_MAP_RESOURCES]));
   }, []);
 
   function snapToLocation() {
@@ -186,6 +193,7 @@ export default function ResourceMapWidget({ height = 320, compact = true, defaul
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-red-600" /> Crisis</span>
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-violet-500" /> Legal</span>
         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-cyan-500" /> Employment</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-400" /> Camping</span>
       </div>
     </div>
   );

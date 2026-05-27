@@ -65,6 +65,37 @@
   `EMERGENT_LLM_KEY` and `JWT_SECRET` present in `backend/.env`.
 - [x] Test credentials documented in `memory/test_credentials.md`.
 
+### Iteration 2 (2026-05-27)
+- [x] **Intro overflow fixed** — "STABILITY STARTS HERE." now uses a tighter
+  `clamp(1.6rem, 4.6vw, 4.4rem)` font with 6vw side padding so it never
+  clips at any viewport width.
+- [x] **Login logo enlarged** — bumped max-width 640→780px, centered on all
+  viewports (was right-aligned on desktop), tagline + caption now stack
+  cleanly underneath.
+- [x] **Survival Bible page** at `/survival-bible` — 12 chapters ported from
+  the `main` branch (`survivalGuide.ts` + `enhancedSurvivalGuide.ts`):
+  water, food, shelter, fire, first aid, navigation, weather, tools,
+  psychology, 15 wilderness knots, bow-drill fire crafting, wilderness
+  shelter designs. Includes search, chapter sidebar, and an inline "Ask BB"
+  toggle.
+- [x] **Camping page** at `/camping` — 12 Bay-Area sites (6 paid, 6 free)
+  on a Leaflet map + filterable card list with price, services, phone, and
+  website.
+- [x] **Camping on the main resource map** — `ResourceMapWidget` now unions
+  `/api/resources` with `CAMPING_AS_MAP_RESOURCES`, adds a green ⛺ marker
+  glyph and a "Camping" legend entry.
+- [x] **Resident & caseworker sidebars** now include "Camping" and
+  "Survival Bible" links.
+- [x] **BB = the dove** — `BBFloatingBubble` and `BBChat` avatar now render
+  `/haven-bird-sm.png` inside a soft golden halo instead of the "BB" text
+  block.
+- [x] **BB knows the Survival Bible** — `bb_brain.BB_SYSTEM_BASE` now
+  embeds a condensed but comprehensive survival-knowledge appendix
+  (water, food, shelter, fire, first aid, navigation, weather, tools,
+  knots with memory tricks, psychology). Verified via curl: BB returns
+  step-by-step bowline instructions and a 4-method water-purification
+  walkthrough.
+
 ## 6. Known gaps / "not yet usable until counties integrate"
 
 These are expected per the user's brief — Haven is a unifying layer that

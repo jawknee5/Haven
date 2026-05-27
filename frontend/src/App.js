@@ -23,6 +23,8 @@ import ResidentTasksPage from "@/pages/ResidentTasksPage";
 import ResidentDocumentsPage from "@/pages/ResidentDocumentsPage";
 import ApplicationsPage from "@/pages/ApplicationsPage";
 import MessagesPage from "@/pages/MessagesPage";
+import SurvivalBiblePage from "@/pages/SurvivalBiblePage";
+import CampingPage from "@/pages/CampingPage";
 
 import "@/App.css";
 
@@ -75,6 +77,8 @@ export default function App() {
             <Route path="/resident/documents" element={<Protected roles={["resident"]}><ResidentDocumentsPage /></Protected>} />
             <Route path="/resident/applications" element={<Protected roles={["resident", "caseworker", "admin"]}><ApplicationsPage /></Protected>} />
             <Route path="/resident/messages" element={<Protected roles={["resident", "caseworker", "admin"]}><MessagesPage /></Protected>} />
+            <Route path="/survival-bible" element={<Protected roles={["resident", "caseworker", "admin"]}><SurvivalBiblePage /></Protected>} />
+            <Route path="/camping" element={<Protected roles={["resident", "caseworker", "admin"]}><CampingPage /></Protected>} />
 
             <Route path="/admin" element={<Protected roles={["admin"]}><AdminDashboard /></Protected>} />
             <Route path="/admin/users" element={<Protected roles={["admin"]}><AdminUsersPage /></Protected>} />

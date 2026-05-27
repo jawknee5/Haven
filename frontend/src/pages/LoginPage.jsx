@@ -102,25 +102,25 @@ export default function LoginPage() {
       </header>
 
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 px-6 lg:px-16 py-6 lg:py-10 relative z-10 items-center max-w-[1600px] w-full mx-auto">
-        {/* LEFT — big HAVEN logo + tagline */}
-        <section className="flex flex-col items-center lg:items-end justify-center text-center lg:text-right login-logo-col">
-          <div className="relative w-full max-w-[640px]">
+        {/* LEFT — big HAVEN logo + tagline (centered column on every viewport) */}
+        <section className="flex flex-col items-center justify-center text-center login-logo-col">
+          <div className="relative w-full max-w-[780px] mx-auto">
             <div
-              className="absolute inset-[-10%] pointer-events-none"
+              className="absolute inset-[-12%] pointer-events-none"
               style={{
                 background:
-                  "radial-gradient(ellipse at center, rgba(212,175,55,0.20) 0%, rgba(212,175,55,0.07) 35%, transparent 70%)",
-                filter: "blur(24px)",
+                  "radial-gradient(ellipse at center, rgba(212,175,55,0.22) 0%, rgba(212,175,55,0.08) 35%, transparent 70%)",
+                filter: "blur(28px)",
               }}
             />
             <img
               src="/haven-logo.png"
               alt="HAVEN — Helping Agencies, Volunteers, and Everyone Navigate"
-              className="relative w-full h-auto drop-shadow-[0_24px_64px_rgba(212,175,55,0.35)]"
+              className="relative w-full h-auto drop-shadow-[0_28px_72px_rgba(212,175,55,0.38)]"
               data-testid="login-haven-logo"
             />
           </div>
-          <p className="mt-6 text-[10px] uppercase tracking-[0.42em] text-[#d4af37]/85">
+          <p className="mt-8 text-[10px] uppercase tracking-[0.42em] text-[#d4af37]/85">
             Helping &middot; Agencies &middot; Volunteers &middot; &amp; Everyone &middot; Navigate
           </p>
           <p className="mt-3 font-display italic text-2xl sm:text-3xl text-[#f1d36b]/90 max-w-md">

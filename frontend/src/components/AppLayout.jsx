@@ -20,6 +20,8 @@ import {
   Bell,
   MessageSquare,
   Send,
+  BookOpen,
+  Tent,
 } from "lucide-react";
 import BBFloatingBubble from "@/components/BBFloatingBubble";
 import BirdMark from "@/components/BirdMark";
@@ -32,6 +34,8 @@ const NAV_BY_ROLE = {
     { to: "/caseworker/forms", label: "Form Builder", icon: FileSpreadsheet },
     { to: "/caseworker/integrations", label: "Agency Bridge", icon: Layers },
     { to: "/resources", label: "Resources", icon: MapIcon },
+    { to: "/camping", label: "Camping", icon: Tent },
+    { to: "/survival-bible", label: "Survival Bible", icon: BookOpen },
     { to: "/book", label: "Book a Session", icon: CalendarClock },
     { to: "/crisis", label: "Crisis Support", icon: LifeBuoy, danger: true },
   ],
@@ -42,6 +46,8 @@ const NAV_BY_ROLE = {
     { to: "/resident/applications", label: "Applications", icon: Send },
     { to: "/resident/messages", label: "Messages", icon: MessageSquare },
     { to: "/resources", label: "Find Resources", icon: MapIcon },
+    { to: "/camping", label: "Camping", icon: Tent },
+    { to: "/survival-bible", label: "Survival Bible", icon: BookOpen },
     { to: "/book", label: "Book a Session", icon: CalendarClock },
     { to: "/crisis", label: "Crisis Support", icon: LifeBuoy, danger: true },
   ],
