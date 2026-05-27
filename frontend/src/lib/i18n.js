@@ -563,13 +563,13 @@ export function LanguageProvider({ children }) {
     try {
       const stored = localStorage.getItem("haven_lang");
       if (stored && LANGUAGES.some((l) => l.code === stored)) return stored;
-    } catch (e) { console.warn("Could not read stored language:", e); }
+    } catch (e) {}
     return "en";
   });
 
   function setLang(code) {
     if (!LANGUAGES.some((l) => l.code === code)) return;
-    try { localStorage.setItem("haven_lang", code); } catch (e) { console.warn("Could not persist language:", e); }
+    try { localStorage.setItem("haven_lang", code); } catch (e) {}
     setLangState(code);
     if (typeof document !== "undefined") {
       document.documentElement.lang = code;
