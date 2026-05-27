@@ -25,10 +25,10 @@ function bbAvatar(size = 32) {
   );
 }
 
-export default function BBChat({ sessionId, contextLabel, defaultMessages, onClose, compact = false }) {
+export default function BBChat({ sessionId, contextLabel, defaultMessages, onClose, compact = false, initialInput = "" }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState(defaultMessages || []);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialInput);
   const [busy, setBusy] = useState(false);
   const [intro, setIntro] = useState(null);
   const scrollRef = useRef(null);
@@ -107,7 +107,7 @@ export default function BBChat({ sessionId, contextLabel, defaultMessages, onClo
           </div>
         )}
         {messages.map((m, i) => (
-          <div key={i} className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""} animate-fade-in-up`}>
+          <div key={`${m.role}-${m.ts || i}`} className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""} animate-fade-in-up`}>
             {m.role === "assistant" ? (
               bbAvatar(28)
             ) : (

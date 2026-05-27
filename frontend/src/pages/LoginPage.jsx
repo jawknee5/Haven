@@ -34,7 +34,7 @@ export default function LoginPage() {
   }, [user, navigate]);
 
   function handleIntroDone() {
-    try { sessionStorage.setItem("haven_intro_seen", "1"); } catch (e) {}
+    try { sessionStorage.setItem("haven_intro_seen", "1"); } catch (err) { console.warn("sessionStorage unavailable:", err); }
     setShowIntro(false);
   }
 

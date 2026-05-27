@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import { SURVIVAL_GUIDE } from "@/data/survivalGuide";
 import { ENHANCED_SURVIVAL_GUIDE } from "@/data/enhancedSurvivalGuide";
@@ -17,6 +18,9 @@ import { useAuth } from "@/lib/auth-context";
  */
 export default function SurvivalBiblePage() {
   const { user } = useAuth();
+  const [params] = useSearchParams();
+  const initialAsk = params.get("ask") || "";
+  const askBBOnLoad = params.get("askbb") === "1" || Boolean(initialAsk);
   const allSections = useMemo(
     () => [...SURVIVAL_GUIDE.sections, ...ENHANCED_SURVIVAL_GUIDE.sections],
     []
@@ -24,7 +28,7 @@ export default function SurvivalBiblePage() {
 
   const [activeId, setActiveId] = useState(allSections[0]?.id);
   const [query, setQuery] = useState("");
-  const [askBB, setAskBB] = useState(false);
+  const [askBB, setAskBB] = useState(askBBOnLoad);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return allSections;
@@ -103,6 +107,7 @@ export default function SurvivalBiblePage() {
                   sessionId={`survival-bible-${user.id}`}
                   contextLabel="Survival Bible"
                   defaultMessages={[]}
+                  initialInput={initialAsk}
                 />
               </div>
             </div>
@@ -131,7 +136,7 @@ export default function SurvivalBiblePage() {
                 <div className="mt-6 space-y-3">
                   {active.subsections.map((sub, i) => (
                     <div
-                      key={i}
+                      key={`${active.id}-sub-${sub.title || i}`}
                       className="rounded-lg border border-[var(--haven-border)] bg-[#0a142b]/60 p-4"
                     >
                       <p className="text-sm font-medium text-[#f1d36b] mb-1">{sub.title}</p>
@@ -154,7 +159,7 @@ export default function SurvivalBiblePage() {
               {active.designs?.length > 0 && (
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                   {active.designs.map((d, i) => (
-                    <DesignCard key={i} design={d} />
+                    <DesignCard key={`${active.id}-design-${d.name || d.title || i}`} design={d} />
                   ))}
                 </div>
               )}
@@ -163,7 +168,7 @@ export default function SurvivalBiblePage() {
               {active.steps?.length > 0 && (
                 <ol className="mt-6 list-decimal pl-6 space-y-2 text-sm text-zinc-200">
                   {active.steps.map((step, i) => (
-                    <li key={i}>
+                    <li key={`${active.id}-step-${i}`}>
                       {typeof step === "string" ? step : step.text || step.description}
                     </li>
                   ))}
@@ -206,7 +211,7 @@ function KnotCard({ knot }) {
       {knot.steps?.length > 0 && (
         <ol className="list-decimal pl-5 space-y-1 text-xs text-zinc-200 leading-relaxed">
           {knot.steps.map((s, i) => (
-            <li key={i}>{s}</li>
+            <li key={`${knot.id}-step-${i}`}>{s}</li>
           ))}
         </ol>
       )}
@@ -230,7 +235,7 @@ function DesignCard({ design }) {
       {design.steps?.length > 0 && (
         <ol className="list-decimal pl-5 space-y-1 text-xs text-zinc-200 leading-relaxed">
           {design.steps.map((s, i) => (
-            <li key={i}>{typeof s === "string" ? s : s.text || s.description}</li>
+            <li key={`design-step-${design.name || ""}-${i}`}>{typeof s === "string" ? s : s.text || s.description}</li>
           ))}
         </ol>
       )}

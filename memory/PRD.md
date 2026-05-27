@@ -65,6 +65,30 @@
   `EMERGENT_LLM_KEY` and `JWT_SECRET` present in `backend/.env`.
 - [x] Test credentials documented in `memory/test_credentials.md`.
 
+### Iteration 3 (2026-05-27) — Quick Drill + code-review fixes
+
+- [x] **BB Quick Drill** card on the resident dashboard. Deterministic
+  day-of-year rotation across 10 curated drills (knots, water purification,
+  navigation, shelters, first aid, fire, hypothermia). Click → routes to
+  `/survival-bible?askbb=1&ask=...` which auto-opens BB and pre-fills the
+  question. User just hits Send to get BB's step-by-step answer.
+- [x] `BBChat` now accepts an `initialInput` prop for pre-filling.
+- [x] `SurvivalBiblePage` honors `?ask=` and `?askbb=1` URL params.
+- [x] **Code-review fixes** (real findings only):
+  - Replaced array-index React keys with stable IDs in `BBChat`,
+    `SurvivalBiblePage`, `ApplicationsPage`, `IntegrationsPage`.
+  - Replaced silent empty `catch {}` blocks with `console.error(...)` /
+    `console.warn(...)` in `MessagesPage`, `IntegrationsPage`, `LoginPage`,
+    `ResidentDashboard`.
+  - Added eslint-disable comments where intentional, matching existing
+    project convention (`AdminUsersPage` style).
+- [x] **Code-review false positives declined** (with rationale recorded in
+  the chat): hardcoded "secrets" findings flagged the public demo password
+  shown on-screen as part of the demo UX; `is None` flagged as `==` issue
+  (incorrect — `is None` is canonical Python); `tokens` undefined finding
+  ignored a re-raising try/except; localStorage → httpOnly-cookie migration
+  deferred as a major architectural change requiring user approval.
+
 ### Iteration 2 (2026-05-27)
 - [x] **Intro overflow fixed** — "STABILITY STARTS HERE." now uses a tighter
   `clamp(1.6rem, 4.6vw, 4.4rem)` font with 6vw side padding so it never

@@ -28,7 +28,9 @@ export default function MessagesPage() {
     try {
       const r = await api.get(`/messages?case_id=${cid}`);
       setMessages(r.data || []);
-    } catch { /* ignore */ }
+    } catch (err) {
+      console.error("Failed to load messages:", err);
+    }
   }
 
   async function send() {
@@ -38,8 +40,10 @@ export default function MessagesPage() {
       await api.post("/messages", { case_id: activeCase.id, content: text });
       setText("");
       loadMessages(activeCase.id);
-    } catch (e) { toast.error("Failed to send"); }
-    finally { setSending(false); }
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      toast.error("Failed to send");
+    } finally { setSending(false); }
   }
 
   return (
