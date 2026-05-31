@@ -9,6 +9,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model VaultUnseal {
+  id        String   @id @default(uuid())
+  shardHash String   // SHA-256 hash to audit without storing the shard
+  provider  String   // Identifier for the admin submitting the shard
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -17,6 +27,7 @@ model User {
   cases     Case[]
   assessments RiskAssessment[]
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model RiskAssessment {
@@ -41,6 +52,15 @@ model Resource {
   available Int      @default(0)
   isActive  Boolean  @default(true)
   status    String   @default("ACTIVE")
+  
+  address   String?
+  latitude  Float?
+  longitude Float?
+  phone     String?
+  email     String?
+  website   String?
+  hours     String?
+  
   createdAt DateTime @default(now())
   cases     Case[]
 }
@@ -254,3 +274,119 @@ model DistressBeacon {
   @@index([severity])
   @@index([createdAt])
 }
+
+// ===== TRANSIT SYSTEM MODELS =====
+
+model TransitRoute {
+  id              String    @id @default(cuid())
+  routeName       String
+  routeNumber     String?
+  routeColor      String    @default("#000000")
+  textColor       String    @default("#FFFFFF")
+  transitMode     String    // bus, train, light-rail, subway, plane, ferry, etc.
+  transportationType String  // ground, air, water
+  description     String?   @db.LongText
+  operatingHours  Json?     // { start: "05:00", end: "23:00" }
+  agency          String?
+  
+  isActive        Boolean   @default(true)
+  
+  stops           TransitStop[]
+  vehicles        TransitVehicle[]
+  arrivals        TransitArrival[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([transitMode])
+  @@index([transportationType])
+  @@index([isActive])
+}
+
+model TransitStop {
+  id              String    @id @default(cuid())
+  routeId         String
+  route           TransitRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  
+  stopName        String
+  latitude        Float
+  longitude       Float
+  address         String?
+  sequence        Int
+  
+  arrivals        TransitArrival[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([routeId, sequence])
+  @@index([routeId])
+}
+
+model TransitVehicle {
+  id              String    @id @default(cuid())
+  routeId         String
+  route           TransitRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  
+  vehicleNumber   String    @unique
+  currentLatitude Float
+  currentLongitude Float
+  currentStopId   String?
+  nextStopId      String?
+  
+  status          String    // in-transit, stopped, delayed, out-of-service
+  occupancy       Int?      // 0-100 percentage
+  heading         Int?      // 0-360 degrees
+  speed           Float?    // km/h
+  
+  lastUpdate      DateTime  @default(now()) @updatedAt
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([routeId])
+  @@index([isActive])
+  @@index([lastUpdate])
+}
+
+model TransitArrival {
+  id              String    @id @default(cuid())
+  routeId         String
+  route           TransitRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  
+  stopId          String
+  stop            TransitStop @relation(fields: [stopId], references: [id], onDelete: Cascade)
+  
+  vehicleId       String?
+  arrivalTime     DateTime
+  departureTime   DateTime?
+  
+  status          String    // on-time, delayed, cancelled
+  occupancy       Int?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([stopId])
+  @@index([routeId])
+  @@index([arrivalTime])
+}
+
+model OmegisAuditLog {
+  id              String    @id @default(cuid())
+  userId          String
+  toolName        String
+  parameters      String?   @db.LongText
+  classificationStage String
+  approved        Boolean
+  confidence      Float
+  reason          String?
+  context         String?   @db.LongText
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([approved])
+  @@index([createdAt])
+}
+

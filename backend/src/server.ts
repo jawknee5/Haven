@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { login, getCases, getResources, routeCase, enrichCase } from './controllers/api';
+import { getAnalytics, getCaseMetrics, getCaseworkerMetrics } from './controllers/analytics';
 import {
   bbChat,
   bbIntroduction,
@@ -13,10 +14,15 @@ import {
   bbExecuteBrowserAction,
 } from './controllers/bbController';
 import { requireAuth } from './middleware/auth';
+import { metricsMiddleware, getMetrics } from './middleware/metrics';
+import transportationRouter from './routes/transportation';
+import omegisRouter from './routes/omegis';
+import resourcesRouter from './routes/resources';
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use(metricsMiddleware);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -27,6 +33,17 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Prometheus metrics
+app.get('/api/metrics', (req, res) => {
+  res.set('Content-Type', 'text/plain');
+  res.send(getMetrics());
+});
+
+// Analytics endpoints
+app.get('/api/analytics', getAnalytics);
+app.get('/api/analytics/cases', getCaseMetrics);
+app.get('/api/analytics/caseworkers', getCaseworkerMetrics);
 
 // Authentication
 app.post('/api/auth/login', login);
@@ -54,10 +71,21 @@ app.get('/api/bb/applications/summary/:userId', requireAuth, bbApplicationsSumma
 app.post('/api/bb/screen/analyze', requireAuth, bbAnalyzeScreen);
 app.post('/api/bb/browser/action', requireAuth, bbExecuteBrowserAction);
 
+// Transportation Routes
+app.use('/api/transportation', transportationRouter);
+
+// Omegis Protocol Routes
+app.use('/api/omegis', omegisRouter);
+
+// Enhanced Resources Routes (with map integration)
+app.use('/api/resources', resourcesRouter);
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Pathway Backend Operational on port ${PORT}`);
   console.log(`   BB Assistant Ready`);
   console.log(`   All engines loaded and running`);
   console.log(`   Health check: GET /api/health`);
+  console.log(`   Metrics: GET /api/metrics`);
+  console.log(`   Analytics: GET /api/analytics`);
 });
