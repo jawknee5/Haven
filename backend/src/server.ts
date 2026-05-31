@@ -1,4 +1,5 @@
 import express from 'express';
+import advancedResourcesRouter from './routes/advancedResources';
 import cors from 'cors';
 import { login, getCases, getResources, routeCase, enrichCase } from './controllers/api';
 import { getAnalytics, getCaseMetrics, getCaseworkerMetrics } from './controllers/analytics';
@@ -78,6 +79,9 @@ app.use('/api/transportation', transportationRouter);
 app.use('/api/omegis', omegisRouter);
 
 // Enhanced Resources Routes (with map integration)
+// Advanced Resources Routes (Interactions, Crisis, Veterinary, Operations)
+app.use('/api/resources/advanced', advancedResourcesRouter);
+app.use('/api/operations', advancedResourcesRouter);
 app.use('/api/resources', resourcesRouter);
 
 const PORT = process.env.PORT || 4000;
