@@ -22,6 +22,8 @@ load_dotenv(ROOT_DIR / ".env")
 from browser_engine import close_all_sessions  # noqa: E402
 from database import db  # noqa: E402
 from routers.admin_router import router as admin_router  # noqa: E402
+from routers.architect_router import router as architect_router  # noqa: E402
+from routers.integration_request_router import router as integration_request_router  # noqa: E402
 from routers.auth_router import router as auth_router  # noqa: E402
 from routers.bb_router import router as bb_router  # noqa: E402
 from routers.case_ops_router import router as case_ops_router  # noqa: E402
@@ -73,6 +75,8 @@ api_router.include_router(forms_resources_router)
 api_router.include_router(bb_router)
 api_router.include_router(integrations_router)
 api_router.include_router(admin_router)
+api_router.include_router(architect_router)
+api_router.include_router(integration_request_router)
 api_router.include_router(notifications_router)
 
 app.include_router(api_router)

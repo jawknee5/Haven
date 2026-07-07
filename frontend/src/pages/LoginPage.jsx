@@ -30,7 +30,7 @@ export default function LoginPage() {
   const [showIntro, setShowIntro] = useState(!user && !skipIntroParam && !seenThisSession);
 
   useEffect(() => {
-    if (user) navigate(`/${user.role}`, { replace: true });
+    if (user) navigate(user.role === "architect" ? "/architect" : `/${user.role}`, { replace: true });
   }, [user, navigate]);
 
   function handleIntroDone() {
@@ -47,7 +47,7 @@ export default function LoginPage() {
         mode === "login"
           ? await login(email, password)
           : await register({ email, password, name, role });
-      navigate(`/${u.role}`);
+      navigate(u.role === "architect" ? "/architect" : `/${u.role}`);
     } catch (e) {
       setErr(e?.response?.data?.detail || "Something went wrong");
     } finally {
@@ -62,7 +62,7 @@ export default function LoginPage() {
     setBusy(true);
     try {
       const u = await login(acc.email, acc.password);
-      navigate(`/${u.role}`);
+      navigate(u.role === "architect" ? "/architect" : `/${u.role}`);
     } catch (e) {
       setErr(e?.response?.data?.detail || "Login failed");
     } finally {
@@ -80,12 +80,12 @@ export default function LoginPage() {
       <div className="intro-bg pointer-events-none fixed inset-0 opacity-60" />
       <div className="intro-stars pointer-events-none fixed inset-0 opacity-50" />
 
-      {/* Soft golden glow behind the logo column */}
+      {/* Soft golden glow behind the centered logo */}
       <div
-        className="pointer-events-none fixed left-0 top-0 bottom-0 w-1/2 hidden lg:block"
+        className="pointer-events-none fixed left-1/2 top-1/4 -translate-x-1/2 w-[900px] h-[600px] hidden lg:block"
         style={{
           background:
-            "radial-gradient(ellipse at 35% 50%, rgba(212,175,55,0.10) 0%, rgba(212,175,55,0.04) 35%, transparent 65%)",
+            "radial-gradient(ellipse at center, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.04) 40%, transparent 70%)",
         }}
       />
 
@@ -102,9 +102,9 @@ export default function LoginPage() {
       </header>
 
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 px-6 lg:px-16 py-6 lg:py-10 relative z-10 items-center max-w-[1600px] w-full mx-auto">
-        {/* LEFT — big HAVEN logo + tagline (centered column on every viewport) */}
-        <section className="flex flex-col items-center justify-center text-center login-logo-col">
-          <div className="relative w-full max-w-[780px] mx-auto">
+        {/* LEFT — big HAVEN logo + tagline */}
+        <section className="flex flex-col items-center lg:items-end justify-center text-center lg:text-right login-logo-col">
+          <div className="relative w-full max-w-[520px] lg:max-w-[640px] mx-auto lg:mx-0">
             <div
               className="absolute inset-[-12%] pointer-events-none"
               style={{
@@ -120,7 +120,7 @@ export default function LoginPage() {
               data-testid="login-haven-logo"
             />
           </div>
-          <p className="mt-8 text-[10px] uppercase tracking-[0.42em] text-[#d4af37]/85">
+          <p className="mt-6 text-[10px] uppercase tracking-[0.42em] text-[#d4af37]/85">
             Helping &middot; Agencies &middot; Volunteers &middot; &amp; Everyone &middot; Navigate
           </p>
           <p className="mt-3 font-display italic text-2xl sm:text-3xl text-[#f1d36b]/90 max-w-md">

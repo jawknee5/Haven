@@ -278,9 +278,20 @@ DEMO_FORMS = [
 
 async def ensure_seed() -> None:
     """Idempotent seed. Safe to call on every startup."""
+    # ARCHITECT — always keep this one account elevated so the superuser
+    # dashboard is available immediately after any redeploy or fresh DB.
+    await users_col.update_one(
+        {"email": "jawknee.rodriquez@gmail.com"},
+        {"$set": {"role": "architect"}},
+    )
+
     if await users_col.count_documents({}) >= len(DEMO_USERS):
-        logger.info("HAVEN seed already present")
-        # still ensure caseworker_id mapping on cases
+        logger.info("HAVEN seed already present (users); syncing resources catalog")
+        # Still upsert resources so new EXTRA_RESOURCES entries flow in on every deploy
+        from seed_resources_extra import EXTRA_RESOURCES
+        for r in DEMO_RESOURCES + EXTRA_RESOURCES:
+            if not await resources_col.find_one({"name": r["name"]}):
+                await resources_col.insert_one({**r, "id": new_id()})
         return
 
     logger.info("Seeding HAVEN demo data")
@@ -303,11 +314,15 @@ async def ensure_seed() -> None:
         await users_col.insert_one(doc)
         user_id_by_email[u["email"]] = {"id": doc["id"], "name": doc["name"]}
 
-    # resources
-    if await resources_col.count_documents({}) == 0:
-        for r in DEMO_RESOURCES:
-            r = {**r, "id": new_id()}
-            await resources_col.insert_one(r)
+    # resources (idempotent upsert-by-name so re-runs pick up new EXTRA_RESOURCES)
+    from seed_resources_extra import EXTRA_RESOURCES
+    all_resources = DEMO_RESOURCES + EXTRA_RESOURCES
+    for r in all_resources:
+        existing = await resources_col.find_one({"name": r["name"]})
+        if existing:
+            continue
+        doc = {**r, "id": new_id()}
+        await resources_col.insert_one(doc)
 
     # cases
     cw = user_id_by_email["caseworker@haven.demo"]

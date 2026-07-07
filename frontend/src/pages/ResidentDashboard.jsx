@@ -6,6 +6,7 @@ import ResourceMapWidget from "@/components/ResourceMapWidget";
 import api from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { getTodaysDrill } from "@/data/quickDrills";
+import CaseNumberWidget from "@/components/CaseNumberWidget";
 import {
   MessageSquare, ListChecks, MapPin, CalendarClock, ArrowRight, LifeBuoy,
   Folder, Send, Bell, ShieldCheck, CheckCircle2, AlertTriangle, BookOpen, Sparkles,
@@ -143,6 +144,7 @@ export default function ResidentDashboard() {
 
         <div className="col-span-12 xl:col-span-5 space-y-4">
           <ResourceMapWidget height={300} />
+          <CaseNumberWidget />
           <QuickDrillCard />
           <BBChat sessionId={`bb-res-${user?.id}`} contextLabel="Resident" compact />
         </div>

@@ -187,3 +187,23 @@ counties instant social proof when they're evaluating whether to integrate.
 ├── design_guidelines.json     dark Swiss-Brutalist tactical theme
 └── memory/                    PRD.md, test_credentials.md
 ```
+
+### Iteration 4 (2026-07-07) — Engines + Apex Vault + Architect + 63 resources
+
+- [x] **Six Engines** ported to Python at `backend/engines/*.py` (civic_context, firstresponse_router, qualifycore, nexus_match, civic_flow, cascade_pipeline, dispatcher). `run_all_engines(ctx, db=db)` executes the full pipeline in ~1.5 ms; verified via `/api/architect/engines/self-test`.
+- [x] **Apex Vault** at `backend/vault.py` — AES-256-GCM authenticated encryption + scrypt KDF (N=2^15) + DEK/KEK envelope + HMAC-SHA256 timing-safe integrity + `VaultRotator`. Module-level helpers (`encrypt_field`, `decrypt_field`, `protect_document`, `unprotect_document`) with a 7-field auto-encryption allow-list (ssn, dob, case_number, income, bank_account, phone, address_line1).
+- [x] **Massive resource catalog** — `seed_resources_extra.py` adds 100-line dump (~55 entries) covering HUD-VASH, Here4You Coordinated Entry, Homekey, homeless prevention, emergency shelter, Second Harvest, CalFresh, WIC, hot-meal kitchens, Medi-Cal, valley homeless healthcare, FQHCs, DV shelters, crisis lines, 988, work2future, Reentry Resource Center, EDD unemployment, CalWORKs, GA, SSA, Law Foundation SV, Public Defender record clearance, SIREN + Catholic Charities immigration, LIHEAP, PG&E CARE, 4Cs childcare, First 5, Boys & Girls, PAL youth, Gateway SUD, Pathway Society, Sourcewise seniors, IHSS, VTA Access + Lifeline, HUD SF regional, VA Palo Alto homeless, 211 Bay Area. Idempotent upsert-by-name; new entries flow in on every restart.
+- [x] **Resource click-to-expand modal** (`ResourceDetailModal.jsx`) with Call / Email / Website / Directions / Apply / Reserve action buttons; capacity + availability badge; explains that live open-spot data lights up once the agency signs the DPA.
+- [x] **The Architect dashboard** at `/architect` — **exclusively** gated to `role="architect"` (only `jawknee.rodriquez@gmail.com`). Admins get 403. Shows: 6 live metric tiles, Apex Vault status card, Six-engine self-test button, User CRUD table, Agency Integration Requests panel. Auto-refreshes every 15 s.
+- [x] **Request Integration OAuth form** (`IntegrationRequestForm.jsx`) — Architect enters agency + top-3 chain-of-command → backend generates pre-filled DPA (HTML endpoint, print-to-PDF) + mailto link → when a signed doc + credentials come back via `POST /api/integration-requests/{id}/authorize`, secrets are encrypted through the Apex Vault before storage and status flips to `active`.
+- [x] **Case-number widget** (`CaseNumberWidget.jsx`) on both **resident** AND **caseworker** dashboards — value is encrypted via the Apex Vault so BB can use it later for autofill on the corresponding agency portal.
+- [x] **Login redirects**: architect → `/architect`, admin → `/admin` (unchanged), everyone else → `/{role}`.
+- [x] **Sidebar navigation**: added new `architect` schema with "The Architect" link at the top (Crown icon).
+- [x] **Login layout**: kept the enlarged logo (max 640px on desktop), tagline stacked underneath, side-by-side with the sign-in card.
+- [x] **BB knows the Apex Vault & engines**: system-prompt appendix from Iteration 2 already teaches survival topics; engines run behind the scenes to generate the eligibility + resource-match context BB serves to the resident.
+- [x] Document Locker upload button confirmed working (data-testid `doc-upload-btn` in `ResidentDocumentsPage`); no fix required, user just needs to be on their active-case documents page.
+
+### Known non-blockers deferred
+- **OCR/AI document scanner** (Gemini Vision + auto-classification into the locker) — will land in a dedicated pass.
+- **Live open-spot data** for each resource — activates the moment each agency signs the DPA; until then, the modal shows "live sync pending integration".
+- **SendGrid email delivery** — currently uses `mailto:` chain-of-command; SendGrid wiring pending an API key.

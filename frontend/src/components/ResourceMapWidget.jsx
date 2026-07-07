@@ -64,7 +64,7 @@ function MapHandle({ register, doubleTapEnabled }) {
   return null;
 }
 
-export default function ResourceMapWidget({ height = 320, compact = true, defaultCenter = [37.3382, -121.8863] }) {
+export default function ResourceMapWidget({ height = 320, compact = true, defaultCenter = [37.3382, -121.8863], onResourceClick }) {
   const [resources, setResources] = useState([]);
   const [userPos, setUserPos] = useState(null);
   const [locating, setLocating] = useState(false);
@@ -145,7 +145,7 @@ export default function ResourceMapWidget({ height = 320, compact = true, defaul
           <MapHandle register={(m) => (mapRef.current = m)} doubleTapEnabled />
 
           {resources.map((r) => (
-            <Marker key={r.id} position={[r.lat, r.lng]} icon={resourceIcon(r.type)}>
+            <Marker key={r.id} position={[r.lat, r.lng]} icon={resourceIcon(r.type)} eventHandlers={onResourceClick ? { click: () => onResourceClick(r) } : undefined}>
               <Popup>
                 <div className="text-zinc-100 text-sm space-y-1 min-w-[220px]">
                   <p className="font-medium">{r.name}</p>

