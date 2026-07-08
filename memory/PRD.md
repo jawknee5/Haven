@@ -31,12 +31,20 @@
   `design_guidelines.json`).
 - **Backend:** FastAPI (Python 3.11) under `/api`, Motor (async MongoDB),
   JWT auth (HS256), Playwright-driven "BB" browser agent for autofilling
-  agency forms, emergentintegrations for LLM access.
+  agency forms.
+- **BB AI brain (Feb 2026):** Primary → **local Ollama** (`llama3.2:3b`,
+  no LLM credit cost). Fallback → Emergent Universal LLM key (Claude Sonnet).
+  Managed by supervisor at `/etc/supervisor/conf.d/ollama.conf` on
+  `127.0.0.1:11434`. Configured via `OLLAMA_URL` / `OLLAMA_MODEL` in
+  `backend/.env`.
 - **DB:** MongoDB (Motor / pymongo), seeded with demo users, cases,
-  resources, forms, tasks, messages.
+  resources (113 unique), forms, tasks, messages.
 - **Routers mounted under `/api`:**
   `auth`, `users`, `cases`, `case_ops`, `forms_resources` (forms + resources),
   `bb` (BB AI browser agent + chat), `integrations`, `admin`, `notifications`.
+- **Health endpoints (aligned with `TECHNICAL_OVERVIEW.md`):**
+  `GET /api/health` (components incl. bb_brain engine & model_ready),
+  `GET /api/health/live` (liveness), `GET /api/health/ready` (DB readiness).
 
 ## 4. Personas
 

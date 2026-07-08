@@ -63,7 +63,57 @@ async def root():
 
 @api_router.get("/health")
 async def health():
-    return {"status": "ok", "service": "haven-backend"}
+    """Full health status — includes DB + BB brain (Ollama) readiness."""
+    components: dict = {"api": {"status": "healthy"}}
+    # DB
+    try:
+        await db.command("ping")
+        components["database"] = {"status": "healthy"}
+    except Exception as e:
+        components["database"] = {"status": "unhealthy", "error": str(e)[:120]}
+    # BB brain (Ollama primary, Emergent fallback)
+    try:
+        import httpx
+        from bb_brain import OLLAMA_URL, OLLAMA_MODEL, EMERGENT_LLM_KEY
+        try:
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                r = await client.get(f"{OLLAMA_URL}/api/tags")
+                r.raise_for_status()
+                tags = r.json().get("models", [])
+                has_model = any(OLLAMA_MODEL.split(":")[0] in (m.get("name") or "") for m in tags)
+                components["bb_brain"] = {
+                    "status": "healthy",
+                    "engine": "ollama",
+                    "model": OLLAMA_MODEL,
+                    "model_ready": has_model,
+                }
+        except Exception:
+            components["bb_brain"] = {
+                "status": "degraded" if EMERGENT_LLM_KEY else "unhealthy",
+                "engine": "emergent_llm_fallback" if EMERGENT_LLM_KEY else "none",
+            }
+    except Exception as e:
+        components["bb_brain"] = {"status": "unknown", "error": str(e)[:120]}
+
+    overall = "healthy" if all(c.get("status") == "healthy" for c in components.values()) else "degraded"
+    return {"status": overall, "service": "haven-backend", "components": components}
+
+
+@api_router.get("/health/live")
+async def health_live():
+    """Liveness probe — service is running."""
+    return {"alive": True}
+
+
+@api_router.get("/health/ready")
+async def health_ready():
+    """Readiness probe — DB is reachable."""
+    try:
+        await db.command("ping")
+        return {"ready": True, "db": "connected"}
+    except Exception as e:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=503, content={"ready": False, "db": "disconnected", "error": str(e)[:120]})
 
 
 # Mount all routers
