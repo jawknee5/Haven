@@ -51,6 +51,40 @@ key_fields should capture identifiers like full name, document number, dates, is
 If the image is not a document (random photo), use category "other", confidence 0, is_legible false."""
 
 
+TEXT_PROMPT_TEMPLATE = """Read this document text carefully, then classify and extract. The full text is provided below between <document> tags.
+
+Return ONLY the same JSON object schema as specified, where "extracted_text" is the cleaned document text.
+
+<document>
+{text}
+</document>"""
+
+
+def extract_docx_text(content: bytes) -> str:
+    import io
+    from docx import Document as DocxDocument
+    d = DocxDocument(io.BytesIO(content))
+    parts = [p.text for p in d.paragraphs if p.text.strip()]
+    for table in d.tables:
+        for row in table.rows:
+            parts.append(" | ".join(c.text.strip() for c in row.cells))
+    return "\n".join(parts)
+
+
+def extract_doc_text(content: bytes) -> str:
+    import subprocess, tempfile
+    with tempfile.NamedTemporaryFile(suffix=".doc", delete=False) as f:
+        f.write(content)
+        path = f.name
+    try:
+        out = subprocess.run(["antiword", path], capture_output=True, timeout=30)
+        if out.returncode == 0 and out.stdout.strip():
+            return out.stdout.decode("utf-8", errors="replace")
+        raise ValueError("Could not read legacy .doc file — try saving it as .docx")
+    finally:
+        os.unlink(path)
+
+
 def pdf_to_image_b64(pdf_bytes: bytes) -> str:
     """Render first page of a PDF to PNG base64 using PyMuPDF."""
     import fitz
@@ -62,15 +96,19 @@ def pdf_to_image_b64(pdf_bytes: bytes) -> str:
     return base64.b64encode(png).decode("ascii")
 
 
-async def scan_document(content: bytes, content_type: str) -> dict:
-    """Send document image to GPT-4o vision; return classification dict."""
+async def scan_document(content: bytes, content_type: str, filename: str = "") -> dict:
+    """Send document (image/PDF via vision, or txt/docx/doc as text) to GPT-4o; return classification dict."""
     if not EMERGENT_LLM_KEY:
         raise RuntimeError("EMERGENT_LLM_KEY not configured")
 
-    if content_type == "application/pdf":
-        image_b64 = pdf_to_image_b64(content)
-    else:
-        image_b64 = base64.b64encode(content).decode("ascii")
+    ext = (filename or "").lower().rsplit(".", 1)[-1] if "." in (filename or "") else ""
+    text_content = None
+    if content_type == "text/plain" or ext == "txt":
+        text_content = content.decode("utf-8", errors="replace")
+    elif ext == "docx" or content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        text_content = extract_docx_text(content)
+    elif ext == "doc" or content_type == "application/msword":
+        text_content = extract_doc_text(content)
 
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
@@ -78,7 +116,16 @@ async def scan_document(content: bytes, content_type: str) -> dict:
         system_message=SYSTEM_PROMPT,
     ).with_model(*SCANNER_MODEL)
 
-    msg = UserMessage(text=USER_PROMPT, file_contents=[ImageContent(image_base64=image_b64)])
+    if text_content is not None:
+        if not text_content.strip():
+            raise ValueError("This file appears to be empty")
+        msg = UserMessage(text=USER_PROMPT + "\n\n" + TEXT_PROMPT_TEMPLATE.format(text=text_content[:30000]))
+    else:
+        if content_type == "application/pdf":
+            image_b64 = pdf_to_image_b64(content)
+        else:
+            image_b64 = base64.b64encode(content).decode("ascii")
+        msg = UserMessage(text=USER_PROMPT, file_contents=[ImageContent(image_base64=image_b64)])
     raw = await chat.send_message(msg)
     text = str(raw).strip()
     if text.startswith("```"):

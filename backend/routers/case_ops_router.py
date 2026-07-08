@@ -31,7 +31,16 @@ logger = logging.getLogger("haven.case_ops")
 
 router = APIRouter(tags=["case-ops"])
 
-SCANNABLE_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
+SCANNABLE_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "application/pdf",
+    "text/plain",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
+SCANNABLE_EXTS = {"jpg", "jpeg", "png", "webp", "pdf", "txt", "doc", "docx"}
 
 
 # ===== TASKS =====
@@ -145,14 +154,15 @@ async def scan_and_file_document(
     user: dict = Depends(get_current_user),
 ):
     """Universal Document Scanner: OCR + AI classify + auto-file into the Locker."""
-    if (file.content_type or "") not in SCANNABLE_TYPES:
-        raise HTTPException(status_code=415, detail="Scanner supports JPG, PNG, WEBP, and PDF only")
+    ext = (file.filename or "").lower().rsplit(".", 1)[-1] if "." in (file.filename or "") else ""
+    if (file.content_type or "") not in SCANNABLE_TYPES and ext not in SCANNABLE_EXTS:
+        raise HTTPException(status_code=415, detail="Scanner supports JPG, PNG, WEBP, PDF, TXT, DOC, and DOCX only")
     content = await file.read()
     if len(content) > 8 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="File too large (max 8MB)")
 
     try:
-        result = await scan_document(content, file.content_type)
+        result = await scan_document(content, file.content_type, file.filename or "")
     except Exception as e:
         logger.exception("Document scan failed")
         msg = str(e)

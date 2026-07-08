@@ -210,7 +210,7 @@ export default function ResidentDocumentsPage() {
                   <button data-testid="doc-upload-btn" disabled={uploading || scanning} onClick={() => fileRef.current?.click()} className="haven-btn inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full btn-outline-navy disabled:opacity-50">
                     <Upload size={14} /> {uploading ? "Uploading…" : "Manual upload"}
                   </button>
-                  <input ref={scanRef} type="file" hidden accept="image/jpeg,image/png,image/webp,application/pdf" onChange={handleScan} data-testid="doc-scan-input" />
+                  <input ref={scanRef} type="file" hidden accept="image/jpeg,image/png,image/webp,application/pdf,.txt,.doc,.docx" onChange={handleScan} data-testid="doc-scan-input" />
                   <button data-testid="doc-scan-btn" disabled={scanning || uploading} onClick={() => scanRef.current?.click()} className="haven-btn inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full btn-gold disabled:opacity-50">
                     {scanning ? <Loader2 size={14} className="animate-spin" /> : <ScanLine size={14} />}
                     {scanning ? "BB is reading your document…" : "Smart Scan"}
@@ -218,7 +218,7 @@ export default function ResidentDocumentsPage() {
                   <p className="text-[11px] text-[#aab5cf] ml-auto">8MB max. Encrypted at rest.</p>
                 </div>
                 <p className="text-[11px] text-[#aab5cf] mt-2 flex items-center gap-1.5">
-                  <Sparkles size={11} className="text-[#d4af37]" /> Smart Scan reads your document (photo or PDF), classifies it, and files it automatically. Extracted details are locked in the Apex Vault.
+                  <Sparkles size={11} className="text-[#d4af37]" /> Smart Scan reads your document (photo, PDF, Word, or text file), classifies it, and files it automatically. Extracted details are locked in the Apex Vault.
                 </p>
               </div>
 

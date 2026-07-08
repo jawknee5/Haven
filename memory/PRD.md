@@ -207,3 +207,17 @@ counties instant social proof when they're evaluating whether to integrate.
 - **OCR/AI document scanner** (Gemini Vision + auto-classification into the locker) — will land in a dedicated pass.
 - **Live open-spot data** for each resource — activates the moment each agency signs the DPA; until then, the modal shows "live sync pending integration".
 - **SendGrid email delivery** — currently uses `mailto:` chain-of-command; SendGrid wiring pending an API key.
+
+### Iteration 5 (2026-06 / current fork) — Universal Document Scanner
+- [x] **Universal Document Scanner** — `backend/scanner.py`: GPT-4o vision (Emergent Universal Key) OCR + classification into 9 categories (identity, social_security, birth_certificate, medical, benefits, housing, income, legal, other).
+- [x] Supported formats: JPG, PNG, WEBP, PDF (PyMuPDF first-page render), TXT, DOCX (python-docx), legacy DOC (antiword).
+- [x] `POST /api/documents/scan` — scans, classifies, auto-files into Document Locker; extracted key_fields + full OCR text encrypted with Apex Vault (`extracted_vault`). `GET /api/documents/{id}/extracted` decrypts for owner/staff.
+- [x] Frontend: "Smart Scan" button + scan result card + "Vault" button per doc opening decrypted-extraction modal (`ResidentDocumentsPage.jsx`). Route: `/resident/documents`.
+- [x] E2E verified: image→housing 0.98, txt→income 0.95, docx→medical 0.98; vault decrypt round-trip OK; UI modal verified via screenshot.
+- [x] Universal Key in backend/.env refreshed after user top-up (old key was budget-exhausted).
+- Error handling: 402 with top-up message when key balance empty; 415 for unsupported types; 413 >8MB.
+
+### Remaining backlog
+- P2: SendGrid email delivery for MOU/DPA (blocked on API key)
+- P3: Live open-spot counts + case-number autoload (blocked on agency partnerships)
+- Refactor: BBBrowserControlPage.jsx modularization; JWT localStorage → httpOnly cookies
