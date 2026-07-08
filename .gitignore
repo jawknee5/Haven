@@ -86,3 +86,10 @@ android-sdk/frontend/node_modules/.cache/default-development/0.pack
 credentials.json
 *.key
 .credentials
+
+# Sensitive / local-only
+memory/test_credentials.md
+__pycache__/
+*.pyc
+.pytest_cache/
+*.log

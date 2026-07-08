@@ -278,12 +278,25 @@ DEMO_FORMS = [
 
 async def ensure_seed() -> None:
     """Idempotent seed. Safe to call on every startup."""
-    # ARCHITECT — always keep this one account elevated so the superuser
-    # dashboard is available immediately after any redeploy or fresh DB.
-    await users_col.update_one(
-        {"email": "jawknee.rodriquez@gmail.com"},
-        {"$set": {"role": "architect"}},
-    )
+    # ARCHITECT — always ensure this one account exists and stays elevated so
+    # the superuser dashboard is available immediately after any redeploy or fresh DB.
+    architect = await users_col.find_one({"email": "jawknee.rodriquez@gmail.com"})
+    if architect:
+        await users_col.update_one(
+            {"email": "jawknee.rodriquez@gmail.com"},
+            {"$set": {"role": "architect"}},
+        )
+    else:
+        await users_col.insert_one({
+            "id": new_id(),
+            "email": "jawknee.rodriquez@gmail.com",
+            "name": "The Architect",
+            "role": "architect",
+            "phone": "",
+            "password_hash": hash_password("Architect2026!"),
+            "created_at": utcnow().isoformat(),
+            "avatar_url": "",
+        })
 
     if await users_col.count_documents({}) >= len(DEMO_USERS):
         logger.info("HAVEN seed already present (users); syncing resources catalog")
