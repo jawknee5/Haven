@@ -228,3 +228,10 @@ counties instant social proof when they're evaluating whether to integrate.
 - [x] Empty catch blocks now log (BBBrowserControlPage, ResidentTasksPage, i18n.js).
 - Code review false positives (documented, no change): "hardcoded secrets" = intentional demo creds + docstring examples; "undefined vars" = assigned in try blocks whose except always raises; "is comparisons" = correct `is None`; "index keys" = static skeleton loaders.
 - Deliberately deferred (budget): complexity refactors (BBChat, browser_action, IntegrationRequestForm, etc.), localStorage → httpOnly cookies, hook-dependency lint churn (mount-only fetch patterns are intentional).
+
+### Iteration 7 — Resource count fix + deploy blockers (testing_agent verified, 100% pass)
+- [x] Root cause of "only 63 resources": previous seed defined 65 entries with 2 name collisions. Expanded seed_resources_extra.py to 104 unique extras (+9 base = 113 total). New categories: mental-health, substance-use, domestic-violence, plus expanded food/health/youth/employment/legal/childcare/seniors/transportation/benefits.
+- [x] Map widget shows 125 = 113 API + 12 hardcoded camping entries (by design; camping merge is client-side in ResourceMapWidget).
+- [x] Deploy blockers fixed: Architect user auto-created on fresh DB (Architect2026!), .gitignore excludes credentials/cache/logs. Deployment scan: PASS.
+- [x] BB unread-nudge (gold dot + "BB has an update", clears on open) added to BBFloatingBubble.
+- NOTE: App is DEPLOYED to production (home-is-haven.cloud). Preview changes require redeploy to go live.
