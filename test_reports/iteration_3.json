@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend regression testing for 'Made with Emergent' badge removal + BB floating bubble unblocking. All 4 requested checks passed: badge is gone on login/dashboard/tasks pages (verified with 6s+ wait for platform script re-injection), BB bubble at bottom-right is clickable and opens chat panel, /resident/documents loads with doc-scan-btn, /resident/tasks loads without errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_behaviors": [
+    "Login page: document.getElementById('emergent-badge') === null after 6s wait",
+    "Login page: no text node containing 'Made with Emergent'",
+    "Post-login (/resident): #emergent-badge NOT found, no 'Made with Emergent' text after 6s wait",
+    "External script https://assets.emergent.sh/scripts/emergent-main.js IS loaded, but MutationObserver kill script successfully prevents badge from appearing",
+    "BB floating bubble found: [data-testid='bb-floating-bubble'], aria-label='Open BB', position: fixed, z-index 40, bottom-right at (1836, 995) with 64x64 size — no overlay covering it",
+    "Clicking BB bubble opens chat panel ([data-testid='bb-chat'] visible with 378x420 dims, BB avatar + suggestions visible)",
+    "/resident/documents: [data-testid='doc-scan-btn'] (Smart Scan) present + document list (test_medical.docx, test_paystub.txt, test_voucher.png) rendered",
+    "/resident/tasks: 4 tasks rendered (Confirm contact information, Verify required documents x2, etc), no error boundary",
+    "Final badge check on /resident/tasks after 6s wait: still not present"
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (frontend-only run per request)", "frontend": "100%"},
+  "test_credentials": "resident@haven.demo / Demo2026! (works)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "App has an intro splash screen (STABILITY STARTS HERE / Help has a home) on /login — must click 'SKIP INTRO' button (bottom-right, text-based selector) to reveal the sign-in form. Demo credentials work. BB bubble = [data-testid='bb-floating-bubble']. Doc scan button = [data-testid='doc-scan-btn']. Badge removal fix in public/index.html (CSS + MutationObserver) is working correctly; external emergent-main.js script still loads but injected badge is immediately removed."
+}

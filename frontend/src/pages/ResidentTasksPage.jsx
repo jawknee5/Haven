@@ -36,7 +36,7 @@ export default function ResidentTasksPage() {
         try {
           const t = await api.get(`/cases/${caseDoc.id}`);
           (t.data?.tasks || []).forEach((tk) => allTasks.push({ ...tk, _case_title: caseDoc.title }));
-        } catch { /* ignore */ }
+        } catch (e) { console.warn(`Failed to load tasks for case ${caseDoc.id}:`, e); }
       }
       setTasks(allTasks);
     } finally { setLoading(false); }

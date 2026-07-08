@@ -557,10 +557,9 @@ async def oauth_start(integration_code: str, user: dict = Depends(require_role("
         )
     adapter = get_adapter(integ)
     state = new_id()
-    redirect_uri = os.environ.get(
-        "OAUTH_REDIRECT_URI",
-        "https://haven-dashboard-1.preview.emergentagent.com/api/integrations/oauth/callback",
-    )
+    redirect_uri = os.environ.get("OAUTH_REDIRECT_URI")
+    if not redirect_uri:
+        raise HTTPException(status_code=500, detail="OAUTH_REDIRECT_URI is not configured")
     url = await adapter.get_authorize_url(redirect_uri=redirect_uri, state=state)
     if not url:
         raise HTTPException(status_code=500, detail="Adapter could not build authorize URL")
@@ -582,10 +581,9 @@ async def oauth_callback(code: str, state: str):
     if not integ:
         raise HTTPException(status_code=404, detail="Integration not found")
     adapter = get_adapter(integ)
-    redirect_uri = os.environ.get(
-        "OAUTH_REDIRECT_URI",
-        "https://haven-dashboard-1.preview.emergentagent.com/api/integrations/oauth/callback",
-    )
+    redirect_uri = os.environ.get("OAUTH_REDIRECT_URI")
+    if not redirect_uri:
+        raise HTTPException(status_code=500, detail="OAUTH_REDIRECT_URI is not configured")
     try:
         tokens = await adapter.exchange_code(code, redirect_uri)
     except Exception as e:
