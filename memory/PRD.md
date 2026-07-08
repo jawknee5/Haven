@@ -221,3 +221,10 @@ counties instant social proof when they're evaluating whether to integrate.
 - P2: SendGrid email delivery for MOU/DPA (blocked on API key)
 - P3: Live open-spot counts + case-number autoload (blocked on agency partnerships)
 - Refactor: BBBrowserControlPage.jsx modularization; JWT localStorage → httpOnly cookies
+
+### Iteration 6 — Badge removal + code review fixes (testing_agent verified, 100% pass)
+- [x] "Made with Emergent" badge hidden: anchor removed from public/index.html + CSS guard + MutationObserver kill-script (platform script re-injects; observer removes it). BB bubble now unblocked and clickable — verified by testing_agent (iteration_3.json).
+- [x] OAuth redirect URI: removed hardcoded stale preview URL fallback in integrations_router.py; now requires OAUTH_REDIRECT_URI env (added to backend/.env).
+- [x] Empty catch blocks now log (BBBrowserControlPage, ResidentTasksPage, i18n.js).
+- Code review false positives (documented, no change): "hardcoded secrets" = intentional demo creds + docstring examples; "undefined vars" = assigned in try blocks whose except always raises; "is comparisons" = correct `is None`; "index keys" = static skeleton loaders.
+- Deliberately deferred (budget): complexity refactors (BBChat, browser_action, IntegrationRequestForm, etc.), localStorage → httpOnly cookies, hook-dependency lint churn (mount-only fetch patterns are intentional).
