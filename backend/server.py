@@ -22,10 +22,17 @@ load_dotenv(ROOT_DIR / ".env")
 from browser_engine import close_all_sessions  # noqa: E402
 from database import db  # noqa: E402
 from routers.auth_router import router as auth_router  # noqa: E402
+from routers.admin_router import router as admin_router  # noqa: E402
+from routers.architect_router import router as architect_router  # noqa: E402
 from routers.bb_router import router as bb_router  # noqa: E402
 from routers.case_ops_router import router as case_ops_router  # noqa: E402
+from routers.case_packet_router import router as case_packet_router  # noqa: E402
 from routers.cases_router import router as cases_router  # noqa: E402
 from routers.forms_resources_router import router as forms_resources_router  # noqa: E402
+from routers.integration_request_router import router as integration_request_router  # noqa: E402
+from routers.integrations_router import ensure_default_integrations, router as integrations_router  # noqa: E402
+from routers.notifications_router import router as notifications_router  # noqa: E402
+from routers.templates_router import router as templates_router  # noqa: E402
 from routers.users_router import router as users_router  # noqa: E402
 from seed import ensure_seed  # noqa: E402
 
@@ -38,6 +45,7 @@ async def lifespan(app: FastAPI):
     logger.info("HAVEN backend starting up")
     try:
         await ensure_seed()
+        await ensure_default_integrations()
     except Exception as e:
         logger.warning(f"Seed step had an issue (continuing): {e}")
     yield
@@ -67,6 +75,13 @@ api_router.include_router(cases_router)
 api_router.include_router(case_ops_router)
 api_router.include_router(forms_resources_router)
 api_router.include_router(bb_router)
+api_router.include_router(integrations_router)
+api_router.include_router(templates_router)
+api_router.include_router(admin_router)
+api_router.include_router(architect_router)
+api_router.include_router(integration_request_router)
+api_router.include_router(notifications_router)
+api_router.include_router(case_packet_router)
 
 app.include_router(api_router)
 

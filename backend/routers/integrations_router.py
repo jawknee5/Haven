@@ -12,6 +12,7 @@ import asyncio
 import hashlib
 import os
 import random
+import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -20,7 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, require_role
-from agency_adapters import get_adapter, has_live_config
+from agency_adapters import get_adapter, has_live_config, generate_pkce_pair, _detect_family, OAUTH_STATE_TTL_SECONDS
 from database import (
     application_tracking_col,
     audit_log_col,
@@ -529,12 +530,16 @@ async def oauth_meta(integration_code: str, user: dict = Depends(get_current_use
         raise HTTPException(status_code=404, detail="Integration not found")
     live = has_live_config(integration_code)
     tokens = await integration_tokens_col.find_one({"integration_code": integration_code}, {"_id": 0})
+    family = _detect_family(integration_code) if live else "simulated"
+    sandbox_env = os.environ.get("OAUTH_ENV", "")
     return {
         "code": integration_code,
         "mode": "live" if live else "simulated",
         "live_configured": live,
         "authorized": bool(tokens),
         "authorized_at": tokens.get("authorized_at") if tokens else None,
+        "adapter_family": family,
+        "sandbox_env": sandbox_env if live else None,
     }
 
 
@@ -548,27 +553,41 @@ async def oauth_start(integration_code: str, user: dict = Depends(require_role("
             status_code=400,
             detail=(
                 f"Live OAuth not configured for {integration_code}. "
-                f"Set env vars: {integration_code}_OAUTH_AUTHORIZE_URL, "
-                f"{integration_code}_OAUTH_TOKEN_URL, "
-                f"{integration_code}_OAUTH_CLIENT_ID, "
-                f"{integration_code}_OAUTH_CLIENT_SECRET, "
-                f"{integration_code}_API_BASE."
+                f"Set env vars: {integration_code}_OAUTH_CLIENT_ID (minimum for sandbox), "
+                f"or full set: _OAUTH_AUTHORIZE_URL, _OAUTH_TOKEN_URL, _OAUTH_CLIENT_ID."
             ),
         )
     adapter = get_adapter(integ)
     state = new_id()
+    pkce_verifier, pkce_challenge = generate_pkce_pair()
+    nonce = secrets.token_urlsafe(16)
     redirect_uri = os.environ.get(
         "OAUTH_REDIRECT_URI",
-        "https://haven-dashboard-1.preview.emergentagent.com/api/integrations/oauth/callback",
+        "https://homeishaven.cloud/api/integrations/oauth/callback",
     )
-    url = await adapter.get_authorize_url(redirect_uri=redirect_uri, state=state)
+    url = await adapter.get_authorize_url(
+        redirect_uri=redirect_uri, state=state,
+        pkce_challenge=pkce_challenge, nonce=nonce,
+    )
     if not url:
         raise HTTPException(status_code=500, detail="Adapter could not build authorize URL")
-    await oauth_states_col.insert_one(
-        {"state": state, "integration_code": integration_code, "user_id": user["id"], "created_at": utcnow().isoformat()}
-    )
+    expires_at = (utcnow() + timedelta(seconds=OAUTH_STATE_TTL_SECONDS)).isoformat()
+    await oauth_states_col.insert_one({
+        "state": state,
+        "integration_code": integration_code,
+        "user_id": user["id"],
+        "pkce_verifier": pkce_verifier,
+        "nonce": nonce,
+        "expires_at": expires_at,
+        "created_at": utcnow().isoformat(),
+    })
     await write_audit(user, "integration.oauth_start", integration_code)
-    return {"authorize_url": url, "state": state, "redirect_uri": redirect_uri}
+    return {
+        "authorize_url": url,
+        "state": state,
+        "redirect_uri": redirect_uri,
+        "adapter_family": adapter.adapter_family,
+    }
 
 
 @router.get("/oauth/callback")
@@ -576,37 +595,50 @@ async def oauth_callback(code: str, state: str):
     """Universal OAuth callback. Routes to the right adapter based on stored state."""
     record = await oauth_states_col.find_one({"state": state}, {"_id": 0})
     if not record:
-        raise HTTPException(status_code=400, detail="Invalid or expired state")
+        raise HTTPException(status_code=400, detail="Invalid or expired OAuth state")
+    # Enforce state expiry
+    expires_at = record.get("expires_at")
+    if expires_at and utcnow().isoformat() > expires_at:
+        await oauth_states_col.delete_one({"state": state})
+        raise HTTPException(status_code=400, detail="OAuth state expired — please restart the connection flow")
     integration_code = record["integration_code"]
     integ = await integrations_col.find_one({"code": integration_code}, {"_id": 0})
     if not integ:
         raise HTTPException(status_code=404, detail="Integration not found")
-    adapter = get_adapter(integ)
+    tokens_doc = await integration_tokens_col.find_one({"integration_code": integration_code}, {"_id": 0})
+    adapter = get_adapter(integ, tokens=tokens_doc)
     redirect_uri = os.environ.get(
         "OAUTH_REDIRECT_URI",
-        "https://haven-dashboard-1.preview.emergentagent.com/api/integrations/oauth/callback",
+        "https://homeishaven.cloud/api/integrations/oauth/callback",
     )
+    pkce_verifier = record.get("pkce_verifier")
     try:
-        tokens = await adapter.exchange_code(code, redirect_uri)
+        tokens = await adapter.exchange_code(code, redirect_uri, pkce_verifier=pkce_verifier)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"OAuth exchange failed: {e}")
     await integration_tokens_col.update_one(
         {"integration_code": integration_code},
-        {
-            "$set": {
-                "integration_code": integration_code,
-                "access_token": tokens.get("access_token"),
-                "refresh_token": tokens.get("refresh_token"),
-                "expires_in": tokens.get("expires_in"),
-                "token_type": tokens.get("token_type", "bearer"),
-                "raw": tokens,
-                "authorized_at": utcnow().isoformat(),
-            }
-        },
+        {"$set": {
+            "integration_code": integration_code,
+            "access_token": tokens.get("access_token"),
+            "refresh_token": tokens.get("refresh_token"),
+            "id_token": tokens.get("id_token"),
+            "expires_in": tokens.get("expires_in"),
+            "token_type": tokens.get("token_type", "bearer"),
+            "adapter_family": adapter.adapter_family,
+            "raw": tokens,
+            "authorized_at": utcnow().isoformat(),
+        }},
         upsert=True,
     )
+    # State is single-use — always delete after use
     await oauth_states_col.delete_one({"state": state})
-    return {"ok": True, "integration_code": integration_code, "mode": tokens.get("mode", "live")}
+    return {
+        "ok": True,
+        "integration_code": integration_code,
+        "mode": tokens.get("mode", "live"),
+        "adapter_family": adapter.adapter_family,
+    }
 
 
 @router.post("/{integration_code}/oauth/disconnect")
