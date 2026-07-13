@@ -15,6 +15,7 @@ from database import (
     utcnow,
 )
 from models import new_id
+from seed_resources_extra import EXTRA_RESOURCES
 
 logger = logging.getLogger("haven.seed")
 
@@ -303,9 +304,10 @@ async def ensure_seed() -> None:
         await users_col.insert_one(doc)
         user_id_by_email[u["email"]] = {"id": doc["id"], "name": doc["name"]}
 
-    # resources
+    # resources — 9 demo + 130+ extended catalog
     if await resources_col.count_documents({}) == 0:
-        for r in DEMO_RESOURCES:
+        all_resources = DEMO_RESOURCES + EXTRA_RESOURCES
+        for r in all_resources:
             r = {**r, "id": new_id()}
             await resources_col.insert_one(r)
 
