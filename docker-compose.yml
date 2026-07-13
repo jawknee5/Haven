@@ -1,141 +1,122 @@
 services:
-  frontend:
-    build: 
-      context: .
-      dockerfile: Dockerfile.prod
-    container_name: pathway-frontend
+  # ── Nginx reverse proxy (HTTP/HTTPS, routes / → frontend, /api/ → backend) ──
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: haven-nginx
     ports:
-      - "3000:80"
-    restart: always
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro          # Let's Encrypt certs land here
     depends_on:
+      - frontend
       - backend
+    restart: unless-stopped
     networks:
-      - pathway_net
-    labels:
-      - "com.pathway.service=frontend"
-      - "com.pathway.version=4.0"
-      - "com.pathway.creator=Johnathan R. Rodriquez"
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
+      - haven-net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
 
+  # ── React + Vite frontend (multi-stage build → nginx static) ──────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: haven-frontend
+    expose:
+      - "3000"
+    restart: unless-stopped
+    networks:
+      - haven-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── FastAPI backend ────────────────────────────────────────────────────────
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: pathway-backend
-    env_file:
-      - ./backend/.env.production
+    container_name: haven-backend
+    expose:
+      - "8000"
     environment:
-      - NODE_ENV=production
-      - SERVICE_NAME=pathway-backend
-      - PLATFORM_VERSION=4.0
-      - JWT_SECRET=${JWT_SECRET:-xortron_supreme_super_secret_key_2026}
-      - VAULT_KEY=${VAULT_KEY:-change_me_in_production}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-change_me_in_production}
-
-    ports:
-      - "4000:4000"
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017}
+      - DATABASE_NAME=${DATABASE_NAME:-haven}
+      - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-90}
+      - EMERGENT_LLM_KEY=${EMERGENT_LLM_KEY:-}       # leave blank to disable Sonnet charges
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://homeishaven.cloud,https://www.homeishaven.cloud}
+      - JWT_SECRET=${JWT_SECRET:-change_me_run_openssl_rand_hex_32}
+      - ENVIRONMENT=production
     depends_on:
-      db:
+      mongo:
         condition: service_healthy
-    restart: on-failure
+      ollama:
+        condition: service_started
+    restart: unless-stopped
     networks:
-      - pathway_net
-    labels:
-      - "com.pathway.service=backend"
-      - "com.pathway.version=4.0"
-      - "com.pathway.creator=Johnathan R. Rodriquez"
+      - haven-net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/live"]
       interval: 30s
       timeout: 10s
-      retries: 3
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
+      retries: 5
+      start_period: 20s
 
-  db:
-    image: postgres:15-alpine
-    container_name: pathway-db
-    restart: always
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: haven-mongo
+    expose:
+      - "27017"
     environment:
-      - POSTGRES_USER=pathway_prod
-      - POSTGRES_PASSWORD=PathwaySecure2026
-      - POSTGRES_DB=pathway_prod
-    ports:
-      - "127.0.0.1:5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      - MONGO_INITDB_DATABASE=haven
+    restart: unless-stopped
     networks:
-      - pathway_net
-    labels:
-      - "com.pathway.service=database"
-      - "com.pathway.version=4.0"
+      - haven-net
+    volumes:
+      - mongo-data:/data/db
+    command: mongod --wiredTigerCacheSizeGB 1
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pathway_prod -d pathway_prod"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 60s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
+      start_period: 30s
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: pathway-prometheus
-    restart: always
-    volumes:
-      - ./ops/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
-    networks:
-      - pathway_net
-    labels:
-      - "com.pathway.service=monitoring"
-      - "com.pathway.version=4.0"
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: pathway-grafana
-    restart: always
-    depends_on:
-      - prometheus
-    ports:
-      - "3001:3000"
+  # ── Ollama (local LLM — free, no API credits) ─────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: haven-ollama
+    expose:
+      - "11434"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=PathwayAnalytics202
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
-    volumes:
-      - grafana_data:/var/lib/grafana
+      - OLLAMA_NUM_GPU=0       # set to 1 if your VPS/host has a GPU
+      - OLLAMA_MAX_LOADED_MODELS=1
+    restart: unless-stopped
     networks:
-      - pathway_net
-    labels:
-      - "com.pathway.service=analytics"
-      - "com.pathway.version=4.0"
+      - haven-net
+    volumes:
+      - ollama-models:/root/.ollama/models
+    # Pulls the model on first start (~2 GB, takes a few minutes)
+    entrypoint: >
+      sh -c "ollama serve &
+             sleep 8 &&
+             ollama pull ${OLLAMA_MODEL:-llama3.2:3b};
+             wait"
 
 networks:
-  pathway_net:
+  haven-net:
     driver: bridge
-    name: pathway_network
 
 volumes:
-  pgdata:
-    driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
+  mongo-data:
+  ollama-models:

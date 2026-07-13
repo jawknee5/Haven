@@ -1,18 +1,16 @@
 /**
- * Authentication Service
- * Handles login and token management
+ * Auth Service — endpoints match FastAPI auth_router.py.
  */
+import { apiClient, User } from '../api';
 
-import { apiClient, LoginResponse, User } from './api';
+export interface LoginResponse {
+  token: string;
+  user: User;
+}
 
 export const authService = {
   async login(email: string, password: string): Promise<LoginResponse> {
     return apiClient.post<LoginResponse>('/api/auth/login', { email, password });
-  },
-
-  async logout(): Promise<void> {
-    // Clear local storage is handled in store
-    return Promise.resolve();
   },
 
   async getCurrentUser(): Promise<User | null> {
@@ -21,5 +19,9 @@ export const authService = {
     } catch {
       return null;
     }
+  },
+
+  async updateMe(data: { name?: string; phone?: string }): Promise<User> {
+    return apiClient.patch<User>('/api/users/me', data);
   },
 };

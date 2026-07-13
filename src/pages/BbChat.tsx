@@ -5,18 +5,18 @@ import { useResourceStore } from '../../stores/resourceStore';
 import { FormAnalysisDisplay, ApplicationTrackingDisplay, SuggestionCard } from '../../components/BbChat/BbChatServices';
 
 export default function BbChatPage() {
-  const { messages, loading, sendMessage, userId, setUserId, clearError, error } = useBbChatStore();
+  const { messages, loading, typing, sendMessage, initializeSession, clearError, error } = useBbChatStore();
   const { user } = useAuthStore();
   const { resources } = useResourceStore();
   const [inputValue, setInputValue] = useState('');
   const [initialized, setInitialized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize session
+  // Initialize BB session once user is available
   useEffect(() => {
     if (user && !initialized) {
-      setUserId(user.id);
       setInitialized(true);
+      initializeSession();
     }
   }, [user, initialized]);
 
@@ -128,7 +128,7 @@ export default function BbChatPage() {
             ))
           )}
 
-          {loading && (
+          {(loading || typing) && (
             <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
               <div style={{
                 background: 'rgba(59, 130, 246, 0.2)',

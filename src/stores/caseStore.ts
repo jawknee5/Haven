@@ -1,72 +1,74 @@
 /**
- * Case Store
- * Manages all case-related state
+ * Case Store — aligned to FastAPI cases_router.py.
+ * Status values are lowercase (new|enriched|routed|active|resolved|closed).
+ * urgency_score is 0-100.
  */
 
 import { create } from 'zustand';
-import { Case, RiskAssessment } from '../lib/api';
+import { Case } from '../lib/api';
 import { caseService } from '../lib/services/caseService';
 
-interface CaseState {
-  // Data
-  cases: Case[];
-  selectedCase: Case | null;
-  filteredCases: Case[];
-  assessments: Map<string, RiskAssessment>;
+type StatusFilter = 'all' | 'new' | 'enriched' | 'routed' | 'active' | 'resolved' | 'closed';
 
-  // Loading states
+interface CaseState {
+  cases: Case[];
+  filteredCases: Case[];
+  selectedCase: Case | null;
   loading: boolean;
   error: string | null;
-
-  // Filters
-  statusFilter: 'ALL' | 'NEW' | 'ENRICHED' | 'ROUTED' | 'COMPLETED';
+  statusFilter: StatusFilter;
   searchQuery: string;
 
-  // Actions
   fetchCases: () => Promise<void>;
   createCase: (data: { title: string; description: string; category?: string }) => Promise<Case>;
-  selectCase: (caseId: string | null) => void;
-  enrichCase: (caseId: string) => Promise<void>;
-  routeCase: (caseId: string, resourceId: string) => Promise<void>;
   updateCase: (caseId: string, data: Partial<Case>) => Promise<void>;
-  setStatusFilter: (status: typeof caseState.statusFilter) => void;
+  claimCase: (caseId: string) => Promise<void>;
+  selectCase: (caseId: string | null) => void;
+  setStatusFilter: (status: StatusFilter) => void;
   setSearchQuery: (query: string) => void;
   clearError: () => void;
 }
 
-const caseState: CaseState = {
-  cases: [],
-  selectedCase: null,
-  filteredCases: [],
-  assessments: new Map(),
-  loading: false,
-  error: null,
-  statusFilter: 'ALL',
-  searchQuery: '',
-
-  fetchCases: async () => {},
-  createCase: async () => ({ id: '', userId: '', title: '', description: '', status: 'NEW', createdAt: '', updatedAt: '' }),
-  selectCase: () => {},
-  enrichCase: async () => {},
-  routeCase: async () => {},
-  updateCase: async () => {},
-  setStatusFilter: () => {},
-  setSearchQuery: () => {},
-  clearError: () => {},
-};
+function applyFilters(cases: Case[], statusFilter: StatusFilter, searchQuery: string): Case[] {
+  let out = cases;
+  if (statusFilter !== 'all') {
+    out = out.filter((c) => c.status === statusFilter);
+  }
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase();
+    out = out.filter(
+      (c) =>
+        c.title.toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q) ||
+        (c.category ?? '').toLowerCase().includes(q)
+    );
+  }
+  // Sort by urgency_score descending
+  return [...out].sort((a, b) => (b.urgency_score ?? 0) - (a.urgency_score ?? 0));
+}
 
 export const useCaseStore = create<CaseState>((set, get) => ({
-  ...caseState,
+  cases: [],
+  filteredCases: [],
+  selectedCase: null,
+  loading: false,
+  error: null,
+  statusFilter: 'all',
+  searchQuery: '',
 
   fetchCases: async () => {
     set({ loading: true, error: null });
     try {
       const cases = await caseService.getCases();
-      set({ cases, loading: false });
-      get().setSearchQuery(get().searchQuery); // Trigger filter
-    } catch (error) {
+      const { statusFilter, searchQuery } = get();
       set({
-        error: error instanceof Error ? error.message : 'Failed to fetch cases',
+        cases,
+        filteredCases: applyFilters(cases, statusFilter, searchQuery),
+        loading: false,
+      });
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : 'Failed to fetch cases',
         loading: false,
       });
     }
@@ -76,97 +78,53 @@ export const useCaseStore = create<CaseState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const newCase = await caseService.createCase(data);
-      set({
-        cases: [...get().cases, newCase],
-        loading: false,
-      });
+      const cases = [...get().cases, newCase];
+      const { statusFilter, searchQuery } = get();
+      set({ cases, filteredCases: applyFilters(cases, statusFilter, searchQuery), loading: false });
       return newCase;
-    } catch (error) {
+    } catch (err) {
       set({
-        error: error instanceof Error ? error.message : 'Failed to create case',
+        error: err instanceof Error ? err.message : 'Failed to create case',
         loading: false,
       });
-      throw error;
-    }
-  },
-
-  selectCase: (caseId) => {
-    const selectedCase = caseId ? get().cases.find((c) => c.id === caseId) || null : null;
-    set({ selectedCase });
-  },
-
-  enrichCase: async (caseId) => {
-    set({ loading: true, error: null });
-    try {
-      const assessment = await caseService.enrichCase(caseId);
-      const updatedCases = get().cases.map((c) =>
-        c.id === caseId ? { ...c, status: 'ENRICHED' as const, urgency: assessment.urgencyScore } : c
-      );
-      set({
-        cases: updatedCases,
-        assessments: new Map(get().assessments).set(caseId, assessment),
-        loading: false,
-      });
-    } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'Failed to enrich case',
-        loading: false,
-      });
-    }
-  },
-
-  routeCase: async (caseId, resourceId) => {
-    set({ loading: true, error: null });
-    try {
-      const updatedCase = await caseService.routeCase(caseId, resourceId);
-      set({
-        cases: get().cases.map((c) => (c.id === caseId ? updatedCase : c)),
-        loading: false,
-      });
-    } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'Failed to route case',
-        loading: false,
-      });
+      throw err;
     }
   },
 
   updateCase: async (caseId, data) => {
     try {
-      const updatedCase = await caseService.updateCase(caseId, data);
-      set({
-        cases: get().cases.map((c) => (c.id === caseId ? updatedCase : c)),
-      });
-    } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'Failed to update case',
-      });
+      const updated = await caseService.updateCase(caseId, data);
+      const cases = get().cases.map((c) => (c.id === caseId ? updated : c));
+      const { statusFilter, searchQuery } = get();
+      set({ cases, filteredCases: applyFilters(cases, statusFilter, searchQuery) });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Failed to update case' });
     }
   },
 
-  setStatusFilter: (status) => {
-    set({ statusFilter: status });
-    get().setSearchQuery(get().searchQuery); // Trigger filter
+  claimCase: async (caseId) => {
+    try {
+      const updated = await caseService.claimCase(caseId);
+      const cases = get().cases.map((c) => (c.id === caseId ? updated : c));
+      const { statusFilter, searchQuery } = get();
+      set({ cases, filteredCases: applyFilters(cases, statusFilter, searchQuery) });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Failed to claim case' });
+    }
   },
 
-  setSearchQuery: (query) => {
-    set({ searchQuery: query });
+  selectCase: (caseId) => {
+    set({ selectedCase: caseId ? (get().cases.find((c) => c.id === caseId) ?? null) : null });
+  },
 
+  setStatusFilter: (statusFilter) => {
+    const { cases, searchQuery } = get();
+    set({ statusFilter, filteredCases: applyFilters(cases, statusFilter, searchQuery) });
+  },
+
+  setSearchQuery: (searchQuery) => {
     const { cases, statusFilter } = get();
-    let filtered = cases;
-
-    if (statusFilter !== 'ALL') {
-      filtered = filtered.filter((c) => c.status === statusFilter);
-    }
-
-    if (query) {
-      filtered = filtered.filter((c) =>
-        c.title.toLowerCase().includes(query.toLowerCase()) ||
-        c.description.toLowerCase().includes(query.toLowerCase())
-      );
-    }
-
-    set({ filteredCases: filtered });
+    set({ searchQuery, filteredCases: applyFilters(cases, statusFilter, searchQuery) });
   },
 
   clearError: () => set({ error: null }),

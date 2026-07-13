@@ -38,7 +38,7 @@ export default function Login() {
   const handleDemoLogin = async () => {
     setLocalError('');
     try {
-      await login('demo@pathway.local', 'demo_password');
+      await login('resident@haven.demo', 'Demo2026!');
       navigate('/dashboard');
     } catch (err) {
       setLocalError('Demo login failed. Please try again.');

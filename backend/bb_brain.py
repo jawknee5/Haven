@@ -1,4 +1,4 @@
-"""BB's AI brain — powered by Claude Sonnet 4.5 via Emergent Universal LLM key.
+"""BB's AI brain — primary: local Ollama (free); fallback: Emergent/Claude (optional).
 
 BB is HAVEN's intelligent civic-support assistant. She is empathetic, decisive,
 context-aware, and capable of analyzing forms, suggesting autofills, detecting
@@ -7,14 +7,26 @@ crises, and guiding both residents and caseworkers.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from typing import Any, Optional
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+import httpx
+
+logger = logging.getLogger("haven.bb")
 
 EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
 DEFAULT_MODEL = ("anthropic", "claude-sonnet-4-5-20250929")
+
+# ── Ollama config (primary — local, free) ──────────────────────────────────
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://ollama:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
+OLLAMA_TIMEOUT = float(os.environ.get("OLLAMA_TIMEOUT", "90"))
+
+# Per-session in-memory chat history (Ollama is stateless per request)
+_HISTORY: dict[str, list[dict]] = {}
+_HISTORY_MAX_TURNS = 12
 
 
 BB_SYSTEM_BASE = """You are BB — the intelligent civic-support assistant inside HAVEN (Helping Agencies, Volunteers, and Everyone Navigate).
@@ -68,26 +80,68 @@ def _build_role_system(role: str, extra_context: Optional[dict] = None) -> str:
     return "\n\n".join(parts)
 
 
+async def _ollama_chat(session_id: str, system: str, user_message: str) -> str:
+    """Call local Ollama. Raises on failure so caller can fall back."""
+    history = _HISTORY.setdefault(session_id, [])
+    messages = [{"role": "system", "content": system}]
+    messages.extend(history[-_HISTORY_MAX_TURNS:])
+    messages.append({"role": "user", "content": user_message})
+
+    async with httpx.AsyncClient(timeout=OLLAMA_TIMEOUT) as client:
+        r = await client.post(
+            f"{OLLAMA_URL}/api/chat",
+            json={"model": OLLAMA_MODEL, "messages": messages, "stream": False},
+        )
+        r.raise_for_status()
+        data = r.json()
+        reply = (data.get("message") or {}).get("content", "").strip()
+        if not reply:
+            raise RuntimeError("Ollama returned empty content")
+
+    history.append({"role": "user", "content": user_message})
+    history.append({"role": "assistant", "content": reply})
+    if len(history) > _HISTORY_MAX_TURNS * 2:
+        del history[: len(history) - _HISTORY_MAX_TURNS * 2]
+    return reply
+
+
+async def _emergent_chat(session_id: str, system: str, user_message: str) -> str:
+    """Fallback: Emergent Universal LLM key (Claude Sonnet). Only used if Ollama is down."""
+    from emergentintegrations.llm.chat import LlmChat, UserMessage  # lazy import
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=session_id,
+        system_message=system,
+    ).with_model(*DEFAULT_MODEL)
+    msg = UserMessage(text=user_message)
+    response = await chat.send_message(msg)
+    return str(response)
+
+
 async def bb_chat(
     session_id: str,
     user_message: str,
     role: str = "resident",
     context: Optional[dict] = None,
 ) -> str:
-    """Send a message to BB and get a contextual response."""
-    if not EMERGENT_LLM_KEY:
-        return _fallback_response(user_message, role)
+    """Send a message to BB. Tries Ollama first (free), falls back to Emergent LLM key."""
+    system = _build_role_system(role, context)
+
+    # 1) Try Ollama (local, no credits)
     try:
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=session_id,
-            system_message=_build_role_system(role, context),
-        ).with_model(*DEFAULT_MODEL)
-        msg = UserMessage(text=user_message)
-        response = await chat.send_message(msg)
-        return str(response)
-    except Exception as e:  # pragma: no cover
-        return _fallback_response(user_message, role, error=str(e))
+        return await _ollama_chat(session_id, system, user_message)
+    except Exception as e:
+        logger.info(f"Ollama unavailable, falling back: {e}")
+
+    # 2) Optional Emergent/Claude fallback (only if key is set)
+    if EMERGENT_LLM_KEY:
+        try:
+            return await _emergent_chat(session_id, system, user_message)
+        except Exception as e:
+            logger.warning(f"Emergent LLM also failed: {e}")
+            return _fallback_response(user_message, role, error=str(e))
+
+    return _fallback_response(user_message, role)
 
 
 async def bb_intro(role: str, name: Optional[str] = None) -> str:

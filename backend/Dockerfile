@@ -1,22 +1,42 @@
-# Stage 1: Builder
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm install --ignore-scripts
-COPY . .
-RUN npx prisma generate
-RUN npm run build
-RUN npx prisma migrate deploy || true
+FROM python:3.12-slim
 
-# Stage 2: Production Runner
-FROM node:20-alpine AS production
 WORKDIR /app
-ENV NODE_ENV=production
-COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm install --omit=dev --ignore-scripts
-RUN npx prisma generate
-COPY --from=builder /app/dist ./dist
-EXPOSE 4000
-CMD ["npm", "start"]
+
+# System deps for playwright, pymupdf, cryptography, etc.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gcc \
+    libglib2.0-0 \
+    libnss3 \
+    libnspr4 \
+    libdbus-1-3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+# Strip the Emergent-hosted litellm wheel URL; install public PyPI version instead
+RUN grep -v 'litellm @ https://customer-assets.emergentagent' requirements.txt \
+    > requirements_clean.txt \
+    && pip install --no-cache-dir -r requirements_clean.txt \
+    && pip install --no-cache-dir litellm \
+    && rm requirements_clean.txt
+
+# Install Playwright's chromium (used by browser_engine.py / BB form-fill)
+RUN playwright install chromium --with-deps || true
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

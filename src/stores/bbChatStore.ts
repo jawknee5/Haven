@@ -1,109 +1,104 @@
 /**
- * BB Chat Store
- * Manages BB assistant chat state
+ * BB Chat Store — aligned to FastAPI bb_router.py response shapes.
+ *
+ * Backend POST /api/bb/chat returns:
+ *   { reply, intent, session_id, timestamp }
+ *
+ * Backend GET /api/bb/intro returns:
+ *   { reply, role }
+ *
+ * Auth is handled by apiClient (Bearer token). The backend derives
+ * the user's role automatically — no need to pass it manually.
  */
 
 import { create } from 'zustand';
 import { BbChatMessage } from '../lib/api';
-import { bbService, ChatRequest } from '../lib/services/bbService';
+import { bbService } from '../lib/services/bbService';
 
 interface BbChatState {
-  // Data
   messages: BbChatMessage[];
-  sessionId: string | null;
-  userId: string | null;
-
-  // Loading states
+  sessionId: string;
   loading: boolean;
-  error: string | null;
   typing: boolean;
+  error: string | null;
 
-  // Actions
-  initializeSession: (userId: string) => Promise<void>;
+  initializeSession: () => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
   clearHistory: () => void;
-  setUserId: (userId: string) => void;
   clearError: () => void;
 }
 
-export const useBbChatStore = create<BbChatState>((set, get) => {
-  return {
-    messages: [],
-    sessionId: localStorage.getItem('bb_session_id'),
-    userId: null,
-    loading: false,
-    error: null,
-    typing: false,
+function makeSessionId(): string {
+  return `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
 
-    initializeSession: async (userId) => {
-      set({ userId });
-      try {
-        const intro = await bbService.getIntroduction(userId);
-        set({
-          messages: [intro],
-          sessionId: `session_${Date.now()}`,
-        });
-        localStorage.setItem('bb_session_id', `session_${Date.now()}`);
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : 'Failed to initialize BB chat',
-        });
-      }
-    },
+export const useBbChatStore = create<BbChatState>((set, get) => ({
+  messages: [],
+  sessionId: localStorage.getItem('bb_session_id') || makeSessionId(),
+  loading: false,
+  typing: false,
+  error: null,
 
-    sendMessage: async (message) => {
-      const { sessionId, userId } = get();
-
-      if (!userId) {
-        set({ error: 'User not identified' });
-        return;
-      }
-
-      // Add user message to history
-      const userMessage: BbChatMessage = {
-        id: `msg_${Date.now()}`,
-        role: 'user',
-        content: message,
+  initializeSession: async () => {
+    set({ loading: true, error: null });
+    try {
+      const { reply, role } = await bbService.getIntro();
+      const intro: BbChatMessage = {
+        id: `intro_${Date.now()}`,
+        role: 'assistant',
+        content: reply,
         timestamp: new Date().toISOString(),
       };
-
+      const sessionId = makeSessionId();
+      localStorage.setItem('bb_session_id', sessionId);
+      set({ messages: [intro], sessionId, loading: false });
+    } catch (err) {
       set({
-        messages: [...get().messages, userMessage],
-        typing: true,
-        error: null,
+        loading: false,
+        error: err instanceof Error ? err.message : 'Failed to start BB session',
+      });
+    }
+  },
+
+  sendMessage: async (message: string) => {
+    const { sessionId } = get();
+
+    const userMsg: BbChatMessage = {
+      id: `msg_${Date.now()}`,
+      role: 'user',
+      content: message,
+      timestamp: new Date().toISOString(),
+    };
+
+    set({ messages: [...get().messages, userMsg], typing: true, error: null });
+
+    try {
+      const response = await bbService.sendMessage({
+        session_id: sessionId,
+        message,
       });
 
-      try {
-        const response = await bbService.sendMessage({
-          userId,
-          sessionId: sessionId || undefined,
-          message,
-        });
+      const assistantMsg: BbChatMessage = {
+        id: `msg_${Date.now()}_bb`,
+        role: 'assistant',
+        content: response.reply,
+        timestamp: response.timestamp,
+      };
 
-        set({
-          messages: [...get().messages, response.message],
-          sessionId: response.sessionId,
-          typing: false,
-        });
+      set({ messages: [...get().messages, assistantMsg], typing: false });
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : 'Failed to send message',
+        typing: false,
+      });
+    }
+  },
 
-        localStorage.setItem('bb_session_id', response.sessionId);
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : 'Failed to send message',
-          typing: false,
-        });
-      }
-    },
+  clearHistory: () => {
+    const newId = makeSessionId();
+    localStorage.setItem('bb_session_id', newId);
+    set({ messages: [], sessionId: newId });
+  },
 
-    clearHistory: () => {
-      set({ messages: [], sessionId: null });
-      localStorage.removeItem('bb_session_id');
-    },
-
-    setUserId: (userId) => {
-      set({ userId });
-    },
-
-    clearError: () => set({ error: null }),
-  };
-});
+  clearError: () => set({ error: null }),
+}));
