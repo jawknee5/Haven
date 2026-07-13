@@ -191,7 +191,14 @@ CASE PACKET PDF EXPORT
   Filename format: HAVEN_CasePacket_{case_id[:8]}.pdf
 
 RESOURCE MAP
-  Interactive Leaflet map of real San José area resources:
+  Interactive Leaflet map with 113 real San José / Santa Clara County resources.
+  9 core resources seeded from seed.py + 104 extended from seed_resources_extra.py.
+  Resources are categorised across 18 types:
+    shelter, food, health, crisis, legal, employment, childcare, benefits,
+    reentry, veterans, youth, utility, immigration, domestic-violence,
+    mental-health, substance-use, transportation, seniors
+
+  Core 9 (always present):
     Boccardo Reception Center         (408) 539-2100  shelter     24/7      250 beds
     Sacred Heart Community Service    (408) 278-2160  food        M-F 8-4   pantry
     Valley Homeless Healthcare        (408) 977-1840  health      M-F 8-5   free
@@ -201,6 +208,73 @@ RESOURCE MAP
     work2future Career Center         (408) 794-1100  employment  M-F 8-5   job training
     Family Supportive Housing         (408) 926-8885  shelter     24/7      families
     Loaves & Fishes Family Kitchen    (408) 922-5564  food        daily     hot meals
+
+  Extended catalog highlights (104 additional):
+    SHELTER / HOUSING (11)
+      HomeFirst Sobrate House Youth Center, LifeMoves Julian Street Inn,
+      HUD-VASH Voucher Program (VA Palo Alto), Here4You Coordinated Entry,
+      Project Homekey Pavilion Inn, Bill Wilson Center Homeless Prevention,
+      Abode Services Rapid Rehousing, PATH San Jose, InnVision Georgia Travis House,
+      SC County Office of Supportive Housing, Housing Authority of SCC
+    FOOD (12)
+      Second Harvest of Silicon Valley, CalFresh Enrollment (SSA),
+      WIC Santa Clara County, Loaves & Fishes Winchester Kitchen,
+      St. Joseph's Family Center (Gilroy), Martha's Kitchen,
+      West Valley Community Services, CityTeam San Jose, Sacred Heart Food Pantry,
+      St. Justin Community Ministry, Village Harvest Gleaning, Salvation Army Emmanuel House,
+      Senior Nutrition / Meals on Wheels, Hunger at Home
+    HEALTH (10)
+      Medi-Cal / Covered California, Valley Homeless Healthcare Backstreet Clinic,
+      Gardner Family Health Network, SCVMC Downtown, Bay Area Community Health,
+      Mental Health Urgent Care (EMQ FamiliesFirst), Valley Health Center Downtown,
+      Gardner St. James Health Center, RotaCare Free Clinic, School Health Clinics,
+      Planned Parenthood Mar Monte, Santa Clara County Dental
+    CRISIS / DV (9)
+      988 Lifeline, Next Door Solutions to DV, Community Solutions SafeSpace,
+      Bill Wilson Center Youth Crisis, TRUST Mobile Crisis Team,
+      Maitri South Asian Survivor Services, YWCA Golden Gate Silicon Valley,
+      Community Solutions La Isla Pacifica, SC County Suicide & Crisis Hotline
+    MENTAL HEALTH (6)
+      SC County Behavioral Health, Momentum for Health, Bill Wilson Centre for Living with Dying,
+      Uplift Family Services Crisis Stabilization, Gardner South County Recovery,
+      Horizon Services Sobering Center
+    EMPLOYMENT / REENTRY (7)
+      work2future Reentry, SC County Reentry Resource Center, Goodwill SV Job Connection,
+      California EDD, ConXion to Community, Downtown Streets Team, CET San Jose
+    BENEFITS (6)
+      CalWORKs SSA, General Assistance, Social Security Field Office,
+      Covered California Storefront, SparkPoint Financial Coaching, Medi-Cal Enrollment
+    LEGAL (6)
+      Law Foundation Housing Program, Alexander Community Law Center,
+      SC County Public Defender, Bay Area Legal Aid, Pro Bono Project SV,
+      SC County Self-Help Center
+    IMMIGRATION (2)    SIREN, Catholic Charities Immigration Legal Services
+    UTILITY (2)        LIHEAP Sacred Heart, PG&E CARE Program
+    CHILDCARE (4)      4Cs of SCC, First 5 SCC, Choices for Children, Head Start / Early Head Start
+    YOUTH (5)          Boys & Girls Clubs SV, SJPD PAL, Bill Wilson Drop-In for Youth,
+                       LGBTQ Youth Space, Fresh Lifelines for Youth, Unity Care
+    SUBSTANCE USE (5)  Gateway SCC, Pathway Society, SAMHSA Helpline,
+                       Gardner SCC Recovery, Horizon Sobering
+    SENIORS (4)        Sourcewise, IHSS, The Health Trust, Alzheimer's Association
+    VETERANS (3)       SC County Office of Veterans Services, VA Palo Alto Homeless Program,
+                       HUD-VASH
+    TRANSPORTATION (3) VTA Access Paratransit, VTA Lifeline Reduced-Fare, OUTREACH Paratransit
+    FEDERAL DIRECT     HUD SF Field Office, 211 Bay Area
+
+  If the DB already has only 9 resources (seeded before this fix), run:
+    docker compose exec backend python3 -c "
+    import asyncio, sys; sys.path.insert(0,'/app')
+    from database import resources_col
+    from seed_resources_extra import EXTRA_RESOURCES
+    from models import new_id
+    async def run():
+        ins=0
+        for r in EXTRA_RESOURCES:
+            if not await resources_col.find_one({'name':r['name']}):
+                await resources_col.insert_one({**r,'id':new_id()}); ins+=1
+        print(f'inserted {ins}')
+    asyncio.run(run())
+    "
 
 AGENCY INTEGRATIONS (12 agencies)
   The Agency Bridge connects HAVEN to real government systems.
@@ -579,6 +653,16 @@ Resident      sarah@haven.demo           Sarah Kim
 Architect     jawknee.rodriquez@gmail.com  (Architect2026!)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SEEDED DATA ON STARTUP
+━━━━━━━━━━━━━━━━━━━━━━
+Users (5):       caseworker, 3 residents, 1 admin
+Resources (113): 9 core + 104 extended (seed_resources_extra.py now wired in)
+Cases (6):       see demo cases below
+Tasks (12):      2 per case (confirm contact, verify documents)
+Messages (12):   2 per case (caseworker intro + resident reply)
+Forms (1):       HAVEN Universal Intake
+Integrations (12): full agency catalog via ensure_default_integrations()
 
 SEEDED DEMO CASES
 ━━━━━━━━━━━━━━━━━
