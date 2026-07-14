@@ -26,5 +26,5 @@ app.get("/resources", requireAuth, resourcesHandler);
 app.get("/workflows", requireAuth, workflowsHandler);
 
 app.listen(3001, () => {
-  console.log("Pathway3.0 API running on port 3001");
+  console.log("HAVEN3.0 API running on port 3001");
 });

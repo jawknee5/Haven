@@ -28,7 +28,7 @@ app.use(metricsMiddleware);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
-    status: 'Pathway Backend Operational',
+    status: 'HAVEN Backend Operational',
     version: '4.0',
     bb: 'BB Assistant Ready',
     timestamp: new Date().toISOString(),
@@ -86,7 +86,7 @@ app.use('/api/resources', resourcesRouter);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`🚀 Pathway Backend Operational on port ${PORT}`);
+  console.log(`🚀 HAVEN Backend Operational on port ${PORT}`);
   console.log(`   BB Assistant Ready`);
   console.log(`   All engines loaded and running`);
   console.log(`   Health check: GET /api/health`);

@@ -1,4 +1,4 @@
-import type { DbClient } from '@pathway/db';
+import type { DbClient } from '@haven/db';
 import { db } from '../db/client';
 
 export interface TrpcContext {

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ZERG ROUTE STERILIZATION AND INJECTION PROTOCOL
+# HAVEN ROUTE STERILIZATION AND INJECTION PROTOCOL
 
 
 
@@ -20,7 +20,7 @@ import jwt from 'jsonwebtoken';
 
 export const signToken = (payload: any) => {
 
-  return jwt.sign(payload, process.env.JWT_SECRET || 'zerg_super_secret', { expiresIn: '1d' });
+  return jwt.sign(payload, process.env.JWT_SECRET || 'change_me_in_env', { expiresIn: '1d' });
 
 };
 
@@ -58,7 +58,7 @@ export function registerHealthRoutes(router: Router) {
 
   router.get('/health', (_req, res) => {
 
-    res.json({ status: 'ok', intelligence: 'Zerg' });
+    res.json({ status: 'ok', intelligence: 'HAVEN' });
 
   });
 
@@ -194,7 +194,7 @@ export function registerAuthRoutes(router: Router) {
 
     
 
-    // ZERG SECURITY PATCH: Actually check if the user exists in our database
+    // HAVEN SECURITY PATCH: Actually check if the user exists in our database
 
     const user = await prisma.user.findUnique({ where: { email } });
 

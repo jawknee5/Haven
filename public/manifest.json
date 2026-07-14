@@ -1,6 +1,6 @@
 {
-  "name": "Pathway",
-  "short_name": "Pathway",
+  "name": "HAVEN",
+  "short_name": "HAVEN",
   "description": "Mobile-first civic navigation, survival knowledge, and life-management PWA.",
   "start_url": "/dashboard",
   "display": "standalone",
@@ -10,19 +10,19 @@
   "categories": ["productivity", "education", "utilities"],
   "icons": [
     {
-      "src": "/icons/pathway-192.png",
+      "src": "/icons/haven-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/pathway-512.png",
+      "src": "/icons/haven-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/pathway-maskable.png",
+      "src": "/icons/haven-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

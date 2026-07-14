@@ -7,10 +7,10 @@ interface BadgeProps {
 }
 
 const variantStyles = {
-  default: 'bg-pathway-slate/50 text-pathway-textSecondary',
+  default: 'bg-haven-slate/50 text-haven-textSecondary',
   streak: 'bg-orange-500/15 text-orange-400',
-  achievement: 'bg-pathway-warning/15 text-pathway-warning',
-  xp: 'bg-pathway-teal/15 text-pathway-teal',
+  achievement: 'bg-haven-warning/15 text-haven-warning',
+  xp: 'bg-haven-teal/15 text-haven-teal',
 };
 
 export function Badge({ children, variant = 'default' }: BadgeProps) {

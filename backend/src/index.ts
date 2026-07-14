@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 const collectDefaultMetrics = promClient.collectDefaultMetrics;
-collectDefaultMetrics({ prefix: 'pathway_' });
+collectDefaultMetrics({ prefix: 'haven_' });
 
 app.get('/metrics', async (req, res) => {
   res.set('Content-Type', promClient.register.contentType);
@@ -19,10 +19,10 @@ app.get('/metrics', async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => res.json({ 
-  status: 'Pathway 3.0 Operational', 
+  status: 'HAVEN Operational', 
   environment: process.env.NODE_ENV,
-  intelligence: 'Apex-Zerg' 
+  intelligence: 'Apex-HAVEN' 
 }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`[ZERG] Backend running on port ${PORT} in ${process.env.NODE_ENV} mode`));
+app.listen(PORT, () => console.log(`[HAVEN] Backend running on port ${PORT} in ${process.env.NODE_ENV} mode`));

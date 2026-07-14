@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# Pathway Genesis Production Deployment Script
+# HAVEN Genesis Production Deployment Script
 # Orchestrates Docker build, push, and deployment
 
 set -e
 
-echo "🚀 Pathway Genesis Production Deployment"
+echo "🚀 HAVEN Genesis Production Deployment"
 echo "════════════════════════════════════════════════════════"
 
 # Configuration
 REGISTRY="${REGISTRY:-ghcr.io}"
-IMAGE_NAME="${IMAGE_NAME:-pathway-genesis/frontend}"
+IMAGE_NAME="${IMAGE_NAME:-haven-genesis/frontend}"
 DOCKER_TAG="${1:-latest}"
-DEPLOY_HOST="${DEPLOY_HOST:-prod-server.pathway.com}"
+DEPLOY_HOST="${DEPLOY_HOST:-homeishaven.cloud}"
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
 
 # Color output
@@ -124,7 +124,7 @@ echo "6️⃣  Running health checks..."
 sleep 10
 
 for i in {1..30}; do
-  if curl -sf https://pathway-genesis.com/health >/dev/null 2>&1; then
+  if curl -sf https://haven-genesis.com/health >/dev/null 2>&1; then
     echo -e "${GREEN}✅ Health check passed${NC}"
     break
   fi
@@ -146,5 +146,5 @@ echo ""
 echo "📊 Deployment Summary:"
 echo "   Image: $REGISTRY/$IMAGE_NAME:$DOCKER_TAG"
 echo "   Status: ✅ Running"
-echo "   URL: https://pathway-genesis.com"
+echo "   URL: https://haven-genesis.com"
 echo ""

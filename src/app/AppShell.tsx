@@ -4,7 +4,7 @@ import clsx from 'clsx';
 
 const TABS = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/pathway', label: 'Pathway', icon: '🗺️' },
+  { path: '/navigation', label: 'HAVEN', icon: '🗺️' },
   { path: '/resources', label: 'Resources', icon: '📚' },
   { path: '/housing', label: 'Housing', icon: '🏠' },
   { path: '/survival-bible', label: 'Survival Bible', icon: '📖' },

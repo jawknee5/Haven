@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Pathway Genesis Production Build Verification Script
+# HAVEN Genesis Production Build Verification Script
 # Runs comprehensive checks before deployment
 
 set -e
@@ -144,7 +144,7 @@ echo "   - Size: $TOTAL_SIZE"
 echo "   - Ready for deployment: YES"
 echo ""
 echo "🚀 Next steps:"
-echo "   1. docker build -f Dockerfile.production -t pathway-genesis:latest ."
+echo "   1. docker build -f Dockerfile.production -t haven-genesis:latest ."
 echo "   2. docker-compose -f docker-compose.production.yml up"
 echo "   3. Verify at http://localhost:3000"
 echo ""

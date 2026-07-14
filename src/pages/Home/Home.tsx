@@ -141,7 +141,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="home-nav">
         <div className="nav-left">
-          <span className="logo">🕊️ Pathway Genesis</span>
+          <span className="logo">🕊️ HAVEN Genesis</span>
         </div>
         <div className="nav-links">
           <a href="/">Home</a>
@@ -291,7 +291,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="home-footer">
-          <p>Pathway Genesis • All resources verified for your area</p>
+          <p>HAVEN Genesis • All resources verified for your area</p>
           <div className="footer-links">
             <a href="#">Privacy</a>
             <a href="#">Terms</a>

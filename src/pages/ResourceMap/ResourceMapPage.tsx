@@ -8,7 +8,7 @@ export default function ResourceMapPage() {
       {/* Nav */}
       <nav className="home-nav">
         <div className="nav-left">
-          <span className="logo">🕊️ Pathway Genesis</span>
+          <span className="logo">🕊️ HAVEN Genesis</span>
         </div>
         <div className="nav-links">
           <a href="/">Home</a>

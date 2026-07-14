@@ -1,5 +1,5 @@
 /**
- * PATHWAY GENESIS - OFFICIAL DESIGN SYSTEM
+ * HAVEN GENESIS - OFFICIAL DESIGN SYSTEM
  * Typography, Spacing, Iconography, and Component Specifications
  */
 
@@ -100,7 +100,7 @@ export const iconography = {
   },
   icons: {
     dashboard: 'compass',
-    pathway: 'connected-nodes',
+    navigation: 'connected-nodes',
     resources: 'book',
     tools: 'wrench',
     pack: 'backpack',
@@ -139,7 +139,7 @@ export const backgroundImages = {
       type: 'civic-imagery',
       examples: ['city-skylines', 'community-centers', 'soft-gradients'],
     },
-    pathway: {
+    navigation: {
       type: 'google-street-view',
       dynamic: 'destination-based',
       updates: 'as-user-scrolls-nodes',

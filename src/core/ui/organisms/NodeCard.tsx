@@ -38,19 +38,19 @@ export function NodeCard({ node, onStepToggle, onAction }: NodeCardProps) {
     <div
       className={clsx(
         'glass-card p-4 transition-all duration-200',
-        node.status === 'active' && 'border-pathway-teal/40 ring-1 ring-pathway-teal/20',
+        node.status === 'active' && 'border-haven-teal/40 ring-1 ring-haven-teal/20',
         isLocked && 'opacity-50'
       )}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className={clsx('font-semibold text-pathway-textPrimary', isLocked && 'text-pathway-textMuted')}>
+            <h3 className={clsx('font-semibold text-haven-textPrimary', isLocked && 'text-haven-textMuted')}>
               {node.title}
             </h3>
-            {isLocked && <Icon name="lock" size={14} className="text-pathway-textMuted shrink-0" />}
+            {isLocked && <Icon name="lock" size={14} className="text-haven-textMuted shrink-0" />}
           </div>
-          <p className="text-xs text-pathway-textMuted">{node.description}</p>
+          <p className="text-xs text-haven-textMuted">{node.description}</p>
         </div>
         <StatusPill
           status={node.status === 'active' ? 'in_progress' : node.status === 'completed' ? 'completed' : 'pending'}
@@ -66,7 +66,7 @@ export function NodeCard({ node, onStepToggle, onAction }: NodeCardProps) {
                   onClick={() => onStepToggle?.(node.id, step.id, !step.completed)}
                   className={clsx(
                     'mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors',
-                    step.completed ? 'bg-pathway-success border-pathway-success' : 'border-pathway-textMuted hover:border-pathway-teal'
+                    step.completed ? 'bg-haven-success border-haven-success' : 'border-haven-textMuted hover:border-haven-teal'
                   )}
                 >
                   {step.completed && <Icon name="check" size={12} className="text-white" />}
@@ -74,7 +74,7 @@ export function NodeCard({ node, onStepToggle, onAction }: NodeCardProps) {
                 <span
                   className={clsx(
                     'text-sm',
-                    step.completed ? 'text-pathway-success line-through' : 'text-pathway-textSecondary'
+                    step.completed ? 'text-haven-success line-through' : 'text-haven-textSecondary'
                   )}
                 >
                   {step.label}
@@ -113,7 +113,7 @@ export function NodeCard({ node, onStepToggle, onAction }: NodeCardProps) {
       {node.steps.length > 0 && !isLocked && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="mt-2 text-xs text-pathway-teal hover:text-pathway-softTeal transition-colors"
+          className="mt-2 text-xs text-haven-teal hover:text-haven-softTeal transition-colors"
         >
           {expanded ? 'Show less' : `Show ${node.steps.length} steps`}
         </button>

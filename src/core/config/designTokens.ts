@@ -1,6 +1,6 @@
 export const DESIGN_TOKENS = {
   colors: {
-    pathway: {
+    navigation: {
       navy: '#0A1A2F',
       blue: '#1E3A5F',
       teal: '#1F6F78',

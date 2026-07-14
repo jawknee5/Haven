@@ -4,7 +4,7 @@ import { MessageSquare, Send, X, Bot, User } from 'lucide-react';
 export default function BBChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{role: 'bb' | 'user', text: string}[]>([
-    { role: 'bb', text: "Hello. I am BB, your Pathway Genesis guide. Are you in immediate danger, or do you need help locating a resource?" }
+    { role: 'bb', text: "Hello. I am BB, your HAVEN Genesis guide. Are you in immediate danger, or do you need help locating a resource?" }
   ]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);

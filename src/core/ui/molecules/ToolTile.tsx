@@ -20,10 +20,10 @@ export function ToolTile({ icon, label, onClick, disabled }: ToolTileProps) {
         disabled && 'opacity-40 cursor-not-allowed pointer-events-none'
       )}
     >
-      <div className="w-10 h-10 rounded-xl bg-pathway-slate/50 flex items-center justify-center text-pathway-teal">
+      <div className="w-10 h-10 rounded-xl bg-haven-slate/50 flex items-center justify-center text-haven-teal">
         {icon}
       </div>
-      <span className="text-xs text-pathway-textSecondary text-center leading-tight">{label}</span>
+      <span className="text-xs text-haven-textSecondary text-center leading-tight">{label}</span>
     </button>
   );
 }

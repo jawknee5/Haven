@@ -6,7 +6,7 @@ import {
 
 export default function Dashboard() {
   // Mock data for demonstration
-  const user = { name: 'Pathway User' };
+  const user = { name: 'HAVEN User' };
   const profile = { 
     onboardingCompleted: true,
     currentCity: 'San Jose Matrix'
@@ -57,7 +57,7 @@ export default function Dashboard() {
         </h1>
         <p className="text-slate-400 text-sm mt-1 flex items-center">
           <MapPin className="h-4 w-4 mr-1 text-slate-500" />
-          {profile?.currentCity ?? 'San Jose Matrix'} | Pathway Genesis Active
+          {profile?.currentCity ?? 'San Jose Matrix'} | HAVEN Genesis Active
         </p>
       </header>
 
@@ -100,7 +100,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Pathway Progress Card */}
+        {/* HAVEN Progress Card */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex items-center gap-6 hover:border-slate-600 transition-colors">
           <svg width="80" height="80" viewBox="0 0 64 64" className="flex-shrink-0 drop-shadow-lg">
             <circle cx="32" cy="32" r="28" fill="none" stroke="#1e293b" strokeWidth="6" />
@@ -116,7 +116,7 @@ export default function Dashboard() {
             </text>
           </svg>
           <div>
-            <p className="text-slate-500 text-xs uppercase tracking-widest font-semibold">Pathway Completion</p>
+            <p className="text-slate-500 text-xs uppercase tracking-widest font-semibold">HAVEN Completion</p>
             <p className="text-2xl font-bold text-white mt-1">{completedTasks} / {totalTasks}</p>
             <p className="text-slate-400 text-sm mt-1">Directives fulfilled</p>
           </div>

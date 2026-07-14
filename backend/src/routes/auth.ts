@@ -25,7 +25,7 @@ export function registerAuthRoutes(router: Router) {
 
     
 
-    // ZERG SECURITY PATCH: Actually check if the user exists in our database
+    // HAVEN SECURITY PATCH: Actually check if the user exists in our database
 
     const user = await prisma.user.findUnique({ where: { email } });
 

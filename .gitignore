@@ -1,88 +1,113 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# IDE and editors
-.idea/
-.vscode/
-
-# Dependencies
-node_modules/
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# Testing
-/coverage
-
-# Next.js
-/.next/
-/out/
-next-env.d.ts
-*.tsbuildinfo
-
-# Production builds
-/build
-dist/
-dist
-
-# Environment files (comprehensive coverage)
-
-*token.json*
-*credentials.json*
-
-# Logs and debug files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-dump.rdb
-
-# System files
-.DS_Store
-*.pem
-
-# Python
-__pycache__/
-*pyc*
-venv/
-.venv/
-
-# Development tools
-chainlit.md
-.chainlit
-.ipynb_checkpoints/
-.ac
-
-# Deployment
-.vercel
-
-# Data and databases
-agenthub/agents/youtube/db
-
-# Archive files and large assets
-**/*.zip
-**/*.tar.gz
-**/*.tar
-**/*.tgz
-*.pack
-*.deb
-*.dylib
-
-# Build caches
-.cache/
-
-memory/test_credentials.md
-
-# Mobile development
-android-sdk/
+# ── Environment / Secrets ─────────────────────────────────────────────────────
 .env
-.env.*
-*.env
-credentials.json
+.env.local
+.env.production
+.env.staging
+.env.development
+.env.*.local
+backend/.env
+backend/.env.*
+certs/
+*.pem
 *.key
-.credentials
+*.crt
+
+# ── Runtime / Build ───────────────────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+__pycache__/
+*.pyc
+*.pyo
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# ── OS / Editor ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+*.code-workspace
+.idea/
+
+# ── Test artifacts ────────────────────────────────────────────────────────────
+test_reports/
+coverage/
+*.lcov
+htmlcov/
+
+# ── Docker volumes (local mounts) ────────────────────────────────────────────
+mongo-data/
+ollama-models/
+
+# ── Internal / Private — never commit ────────────────────────────────────────
+Executive_Portfolio/
+HAVEN_AI_CONTEXT*.txt
+HAVEN_AI_CONTEXT*.md
+*_DELIVERY*.md
+*_COMPLETE*.md
+*_SUMMARY*.md
+*_STATUS*.md
+*_VERIFICATION*.md
+*_CHECKLIST*.md
+*_INDEX*.md
+*_GUIDE_COMPLETE*.md
+QUICK_*.md
+QUICK_*.txt
+START_HERE*.md
+MASTER_*.md
+README_DELIVERY*.md
+FINAL_*.md
+FINAL_*.txt
+IMPLEMENTATION_ROADMAP*.md
+OPERATIONAL_GUIDE*.md
+NDA*.md
+CONTRIBUTOR_NDA*.md
+LEGAL_DOCUMENTS*.md
+NDAS_*.md
+HAVEN_EXECUTIVE_PORTFOLIO*.md
+HAVEN_ONE_PAGER*.md
+HAVEN_UNIFIED_DOCUMENTATION*.md
+HAVEN_UNIFIED_DOCUMENTATION_V2*.md
+HAVEN_UNIFIED_DOCUMENTATION_V3*.md
+ORGANIZATION_FINAL_REPORT*.md
+MIGRATION_COMPLETE*.md
+REPO_CLEANUP*.md
+PHASE_1_*.md
+APEX_VAULT_*.md
+ENCRYPTION_VAULT_GUIDE*.md
+DOCUMENTATION_*.md
+GITHUB_*.md
+HAVEN_PROJECT_COMPLETE*.md
+HAVEN_REBRANDING*.md
+HAVEN_VERIFICATION*.md
+HAVEN_v*.md
+UNIFIED_CORPUS_COMPLETE*.md
+CLEANUP_*.md
+COMPLETION_*.md
+
+# ── Legacy / Internal subdirectories ─────────────────────────────────────────
+Unified_Documentation_Corpus/
+summaries/
+guides/
+mobile/
+Haven/
+Vault-Apex-Upgrade/
+backend-reliability-engine/
+memory/
+infra/
+ops/
+test_reports/
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.log
+*.tmp
+image_testing.md
+test_result.md
+design_guidelines.json
+prismaschema.prisma3
+render.yaml
+HavenWeb.code-workspace
+FINAL_SUMMARY.txt
+QUICK_PUSH_REFERENCE.md

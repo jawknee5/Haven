@@ -250,7 +250,7 @@ export default function ResourceMap() {
   return (
     <div className="resource-map">
       <div className="hero">
-        <h1>Pathway</h1>
+        <h1>HAVEN</h1>
       </div>
 
       <div className="vehicle-selector">

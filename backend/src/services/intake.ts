@@ -1,13 +1,13 @@
 import { PrismaClient } from '@prisma/client';
-import { encrypt } from '../utils/XortronVault';
+import { encrypt } from '../utils/ApexVault';
 
 const prisma = new PrismaClient();
 
 export const createPublicIntake = async (title: string, description: string) => {
-  console.log('[BB] Processing public intake with Xortron-Apex encryption...');
+  console.log('[BB] Processing public intake with ApexVault encryption...');
 
   try {
-    // Encrypt description with Xortron-Apex (AES-256-GCM)
+    // Encrypt description with ApexVault (AES-256-GCM)
     const encryptedDescription = encrypt(description);
 
     const newCase = await prisma.case.create({

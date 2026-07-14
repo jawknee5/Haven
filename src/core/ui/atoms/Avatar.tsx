@@ -13,7 +13,7 @@ export function Avatar({ initials, imageUrl, size = 'md', className }: AvatarPro
   return (
     <div
       className={clsx(
-        'rounded-full overflow-hidden flex items-center justify-center font-bold bg-pathway-teal text-white',
+        'rounded-full overflow-hidden flex items-center justify-center font-bold bg-haven-teal text-white',
         sizeMap[size],
         className
       )}

@@ -6,7 +6,7 @@ import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Admin from './pages/Admin';
 import BbChat from './pages/BbChat';
-import Pathway from './pages/Pathway/Pathway';
+import HAVEN from './pages/HAVEN/HAVEN';
 import Resources from './pages/Resources/Resources';
 import Tools from './pages/Tools/Tools';
 import Pack from './pages/Pack/Pack';
@@ -22,7 +22,7 @@ const router = createBrowserRouter([
   { path: '/dashboard',         element: <Dashboard /> },
   { path: '/admin',             element: <Admin /> },
   { path: '/chat',              element: <BbChat /> },
-  { path: '/pathway',           element: <Pathway /> },
+  { path: '/navigation',        element: <HAVEN /> },
   { path: '/resources',         element: <Resources /> },
   { path: '/tools',             element: <Tools /> },
   { path: '/pack',              element: <Pack /> },

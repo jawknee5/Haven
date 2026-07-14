@@ -101,7 +101,7 @@ export default function Login() {
           animation: loginSlideIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
-        .pathway-bird {
+        .haven-bird {
           animation: birdFloat 4s ease-in-out infinite;
         }
 
@@ -117,7 +117,7 @@ export default function Login() {
           animation: goldGlow 3s ease-in-out infinite;
         }
 
-        .pathway-text {
+        .haven-text {
           animation: textGlitch 3s ease-in-out infinite;
         }
       `}</style>
@@ -143,7 +143,7 @@ export default function Login() {
           gap: '30px'
         }}>
           <svg
-            className="pathway-bird logo-glow"
+            className="haven-bird logo-glow"
             viewBox="0 0 400 450"
             width="200"
             height="240"
@@ -205,7 +205,7 @@ export default function Login() {
             </g>
           </svg>
 
-          <div className="pathway-text" style={{
+          <div className="haven-text" style={{
             fontSize: '48px',
             fontWeight: '900',
             background: 'linear-gradient(135deg, #FFD700 0%, #FFF44F 50%, #FFD700 100%)',
@@ -217,7 +217,7 @@ export default function Login() {
             filter: 'drop-shadow(0 0 25px rgba(212, 175, 55, 0.3))',
             fontFamily: 'Georgia, serif'
           }}>
-            PATHWAY
+            HAVEN
           </div>
         </div>
       </div>
@@ -296,7 +296,7 @@ export default function Login() {
               letterSpacing: '2px',
               fontFamily: 'Georgia, serif'
             }}>
-              PATHWAY
+              HAVEN
             </div>
           </div>
 

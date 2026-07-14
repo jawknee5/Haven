@@ -90,7 +90,7 @@ EXTRA_RESOURCES = [
 
     # ============================================================ SUBSTANCE USE
     {"name": "Gateway — Substance Use Access & Referral", "type": "substance-use", "lat": 37.3341, "lng": -121.8956, "address": "976 Lenzen Ave, San Jose, CA 95126", "phone": "(800) 488-9919", "website": "https://www.sccgov.org/sites/bhd/Pages/Gateway.aspx", "hours": "M–F 8a–6p", "description": "County single point of entry for substance-use treatment, MAT, and detox referrals.", "eligibility": "Anyone seeking SUD treatment"},
-    {"name": "Pathway Society Inc.", "type": "substance-use", "lat": 37.3336, "lng": -121.8930, "address": "1659 Scott Blvd #1, Santa Clara, CA 95050", "phone": "(408) 244-1834", "website": "https://www.pathwaysociety.org", "hours": "M–F 8a–5p", "description": "Outpatient SUD counseling, DUI programs, MAT.", "eligibility": "Adults with substance-use concerns"},
+    {"name": "HAVEN Society Inc.", "type": "substance-use", "lat": 37.3336, "lng": -121.8930, "address": "1659 Scott Blvd #1, Santa Clara, CA 95050", "phone": "(408) 244-1834", "website": "https://www.pathwaysociety.org", "hours": "M–F 8a–5p", "description": "Outpatient SUD counseling, DUI programs, MAT.", "eligibility": "Adults with substance-use concerns"},
 
     # ============================================================ SENIORS
     {"name": "Sourcewise — Aging & Adult Services", "type": "seniors", "lat": 37.3527, "lng": -121.9426, "address": "2115 The Alameda, San Jose, CA 95126", "phone": "(408) 350-3200", "website": "https://www.mysourcewise.com", "hours": "M–F 8a–5p", "description": "Senior nutrition, care management, IHSS, Medicare counseling.", "eligibility": "Adults 60+ and their caregivers"},

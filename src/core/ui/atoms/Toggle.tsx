@@ -14,8 +14,8 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
           <div
             className={clsx(
               'w-11 h-6 rounded-full transition-colors duration-200',
-              'bg-pathway-slate peer-checked:bg-pathway-teal',
-              'peer-focus:ring-2 peer-focus:ring-pathway-teal/50'
+              'bg-haven-slate peer-checked:bg-haven-teal',
+              'peer-focus:ring-2 peer-focus:ring-haven-teal/50'
             )}
           />
           <div
@@ -26,7 +26,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
             )}
           />
         </div>
-        {label && <span className="text-sm text-pathway-textPrimary">{label}</span>}
+        {label && <span className="text-sm text-haven-textPrimary">{label}</span>}
       </label>
     );
   }

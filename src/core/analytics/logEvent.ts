@@ -1,4 +1,4 @@
-export type EventDomain = 'task' | 'pathway' | 'resources' | 'tools' | 'pack' | 'onboarding' | 'session' | 'pwa';
+export type EventDomain = 'task' | 'navigation' | 'resources' | 'tools' | 'pack' | 'onboarding' | 'session' | 'pwa';
 
 export interface AnalyticsEvent {
   eventType: string;

@@ -13,16 +13,16 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
         <Icon
           name="search"
           size={18}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-pathway-textMuted pointer-events-none"
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-haven-textMuted pointer-events-none"
         />
         <input
           ref={ref}
           type="text"
           className={clsx(
             'h-12 w-full pl-10 pr-4 rounded-card',
-            'bg-pathway-navy/60 border border-white/[0.06]',
-            'text-pathway-textPrimary placeholder:text-pathway-textMuted',
-            'focus:outline-none focus:ring-2 focus:ring-pathway-teal/30 focus:border-pathway-teal',
+            'bg-haven-navy/60 border border-white/[0.06]',
+            'text-haven-textPrimary placeholder:text-haven-textMuted',
+            'focus:outline-none focus:ring-2 focus:ring-haven-teal/30 focus:border-haven-teal',
             'transition-colors duration-200',
             className
           )}

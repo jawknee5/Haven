@@ -1,7 +1,7 @@
 /**
- * @pathway-genesis/vault-core
+ * @haven-genesis/vault-core
  * PGE ASSIMILATION SCRIPT
- * Author: Zerg (Architect: Johnathan Raias Rodriquez)
+ * Author: HAVEN (Architect: Johnathan Raias Rodriquez)
  * Action: Directory restructuring, cryptographic injection, and artifact purging.
  */
 
@@ -24,7 +24,7 @@ if (!fs.existsSync(path.join(__dirname, 'src'))) {
 
 // 3. Inject Cryptographic Vault Core (src/index.ts)
 const indexTsContent = `/**
- * @pathway-genesis/vault-core
+ * @haven-genesis/vault-core
  * Enterprise Entrypoint - Vault Core & Execution Matrix
  * Author: Johnathan Raias Rodriquez
  * Classification: SECURE / ZERO-DAY
@@ -32,19 +32,19 @@ const indexTsContent = `/**
 
 export enum GenesisSystemState { OFFLINE = 'OFFLINE', INITIALIZING = 'INITIALIZING', SECURE = 'SECURE', COMPROMISED = 'COMPROMISED' }
 
-export class PathwayVaultCore {
-  private static instance: PathwayVaultCore;
+export class HAVENVaultCore {
+  private static instance: HAVENVaultCore;
   private state: GenesisSystemState = GenesisSystemState.OFFLINE;
 
   private constructor() { this.bootSequence(); }
 
-  public static getInstance(): PathwayVaultCore {
-    if (!PathwayVaultCore.instance) { PathwayVaultCore.instance = new PathwayVaultCore(); }
-    return PathwayVaultCore.instance;
+  public static getInstance(): HAVENVaultCore {
+    if (!HAVENVaultCore.instance) { HAVENVaultCore.instance = new HAVENVaultCore(); }
+    return HAVENVaultCore.instance;
   }
 
   private bootSequence(): void {
-    console.log('\\n[VAULT-CORE] Initiating Pathway Genesis Core Matrix...');
+    console.log('\\n[VAULT-CORE] Initiating HAVEN Genesis Core Matrix...');
     this.state = GenesisSystemState.INITIALIZING;
     if (!process.env.VAULT_KEY || process.env.VAULT_KEY.length !== 32) {
        console.error('[VAULT-CORE] CRITICAL FAILURE: Cryptographic key missing or invalid length.');
@@ -56,14 +56,14 @@ export class PathwayVaultCore {
     console.log(\`[VAULT-CORE] Status: \${this.state} | Ready to accept payload.\\n\`);
   }
 }
-export const VaultCore = PathwayVaultCore.getInstance();
+export const VaultCore = HAVENVaultCore.getInstance();
 `;
 fs.writeFileSync(path.join(__dirname, 'src', 'index.ts'), indexTsContent);
 console.log("[PGE] Injected: src/index.ts (AES-256-GCM Secured)");
 
 // 4. Enforce Package & TypeScript Configs
 const pkgContent = `{
-  "name": "@pathway-genesis/vault-core",
+  "name": "@haven-genesis/vault-core",
   "version": "1.0.0-production",
   "author": "Johnathan Raias Rodriquez",
   "private": true,
@@ -95,7 +95,7 @@ if (fs.existsSync(binDir)) {
     });
 
     // 6. Secure Windows .CMD Wrappers
-    const cmdContent = `@ECHO OFF\n:: PATHWAY GENESIS SECURE WRAPPER\nSETLOCAL ENABLEDELAYEDEXPANSION\nIF NOT EXIST "%~dp0\\..\\typescript\\bin\\tsc" EXIT /B 1\nnode "%~dp0\\..\\typescript\\bin\\tsc" %*\n`;
+    const cmdContent = `@ECHO OFF\n:: HAVEN GENESIS SECURE WRAPPER\nSETLOCAL ENABLEDELAYEDEXPANSION\nIF NOT EXIST "%~dp0\\..\\typescript\\bin\\tsc" EXIT /B 1\nnode "%~dp0\\..\\typescript\\bin\\tsc" %*\n`;
     fs.writeFileSync(path.join(binDir, 'tsc.CMD'), cmdContent);
     fs.writeFileSync(path.join(binDir, 'tsserver.CMD'), cmdContent.replace(/tsc/g, 'tsserver'));
     console.log("[PGE] Secured: Compiler binary wrappers");

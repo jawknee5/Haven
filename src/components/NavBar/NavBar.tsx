@@ -4,7 +4,7 @@ export default function NavBar() {
   return (
     <nav className="nav">
       <div className="nav-left">
-        <span className="logo">Pathway Genesis</span>
+        <span className="logo">HAVEN Genesis</span>
       </div>
 
       <div className="nav-links">

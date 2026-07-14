@@ -51,7 +51,7 @@ export default function App() {
   return (
     <div className="flex h-screen bg-slate-950 text-white font-sans">
       <div className="w-64 bg-slate-900 border-r border-slate-700 p-6">
-        <h2 className="text-xl font-bold tracking-wider text-blue-500">PATHWAY v1</h2>
+        <h2 className="text-xl font-bold tracking-wider text-blue-500">HAVEN</h2>
         <p className="text-xs text-green-400 mt-2">● JWT Auth Active</p>
         <p className="text-xs text-slate-500 mt-4">UI by Gordon from Docker</p>
         <p className="text-xs text-slate-500">Engines by Johnathan R.</p>

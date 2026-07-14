@@ -215,7 +215,7 @@ describe('Accessibility', () => {
 
   it('should have proper heading hierarchy', () => {
     cy.get('h1').should('exist');
-    cy.get('h1').should('contain', 'PATHWAY');
+    cy.get('h1').should('contain', 'HAVEN');
   });
 
   it('should have proper form labels', () => {

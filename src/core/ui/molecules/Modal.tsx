@@ -45,7 +45,7 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }:
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div
         className={clsx(
-          'relative w-full bg-pathway-canvas rounded-t-2xl sm:rounded-2xl shadow-modal',
+          'relative w-full bg-haven-canvas rounded-t-2xl sm:rounded-2xl shadow-modal',
           'flex flex-col max-h-[85vh]',
           sizeClasses[size],
           'animate-slide-up'
@@ -53,13 +53,13 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }:
       >
         {title && (
           <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
-            <h2 className="text-lg font-semibold text-pathway-textPrimary">{title}</h2>
+            <h2 className="text-lg font-semibold text-haven-textPrimary">{title}</h2>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-pathway-slate/50 flex items-center justify-center touch-active"
+              className="w-8 h-8 rounded-full bg-haven-slate/50 flex items-center justify-center touch-active"
               aria-label="Close"
             >
-              <Icon name="close" size={16} className="text-pathway-textSecondary" />
+              <Icon name="close" size={16} className="text-haven-textSecondary" />
             </button>
           </div>
         )}

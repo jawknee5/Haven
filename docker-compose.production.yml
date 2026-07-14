@@ -1,18 +1,18 @@
 version: '3.9'
 
 services:
-  pathway-frontend:
+  haven-frontend:
     build:
       context: .
       dockerfile: Dockerfile.production
       args:
-        VITE_API_URL: ${VITE_API_URL:-https://api.pathway-genesis.com}
-    container_name: pathway-frontend
+        VITE_API_URL: ${VITE_API_URL:-https://api.haven-genesis.com}
+    container_name: haven-frontend
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      VITE_API_URL: ${VITE_API_URL:-https://api.pathway-genesis.com}
+      VITE_API_URL: ${VITE_API_URL:-https://api.haven-genesis.com}
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
       interval: 30s
@@ -23,7 +23,7 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - pathway-network
+      - haven-network
     labels:
       - "com.pathway.service=frontend"
       - "com.pathway.environment=production"
@@ -31,7 +31,7 @@ services:
   # Optional: Nginx reverse proxy for production
   nginx:
     image: nginx:alpine
-    container_name: pathway-nginx
+    container_name: haven-nginx
     ports:
       - "80:80"
       - "443:443"
@@ -39,9 +39,9 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:
-      - pathway-frontend
+      - haven-frontend
     networks:
-      - pathway-network
+      - haven-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
@@ -50,7 +50,7 @@ services:
       retries: 3
 
 networks:
-  pathway-network:
+  haven-network:
     driver: bridge
 
 volumes:

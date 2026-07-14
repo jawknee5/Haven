@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Pathway Genesis Pre-Deployment Checklist
+# HAVEN Genesis Pre-Deployment Checklist
 # Verifies all systems ready for production
 
 set -e
 
-echo "🚀 Pathway Genesis Pre-Deployment Checklist"
+echo "🚀 HAVEN Genesis Pre-Deployment Checklist"
 echo "════════════════════════════════════════════════════════"
 echo ""
 

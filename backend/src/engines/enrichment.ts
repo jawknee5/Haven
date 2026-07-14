@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-import { decrypt } from '../utils/XortronVault';
+import { decrypt } from '../utils/ApexVault';
 
 dotenv.config();
 
@@ -22,7 +22,7 @@ export const enrichCaseEngine = async (caseId: string, prismaClient: any) => {
       throw new Error('Case not found');
     }
 
-    // Decrypt with Xortron-Apex
+    // Decrypt with ApexVault
     const decryptedDescription = decrypt(targetCase.description);
 
     console.log(`[OTEE] Transmitting securely to LLM cluster...`);

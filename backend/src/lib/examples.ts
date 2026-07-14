@@ -308,7 +308,7 @@ export async function exampleAuditTrail() {
 export async function runAllExamples() {
   console.log('╔════════════════════════════════════════════════════════════════╗');
   console.log('║         Apex Encryption - Live Examples                       ║');
-  console.log('║     Government-Grade Vault for Haven v4.0                     ║');
+  console.log('║     Government-Grade Vault for Haven                     ║');
   console.log('╚════════════════════════════════════════════════════════════════╝');
 
   try {

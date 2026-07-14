@@ -4,7 +4,7 @@ import AppShell from './AppShell';
 
 // Placeholder route components - replace with actual implementations
 const Dashboard = () => <ResourceMap />;
-const Pathway = () => <div>Pathway</div>;
+const HAVEN = () => <div>HAVEN</div>;
 const Resources = () => <div>Resources</div>;
 const Tools = () => <div>Tools</div>;
 const Pack = () => <div>Pack</div>;
@@ -17,7 +17,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> },
       { path: 'dashboard', element: <Dashboard /> },
-      { path: 'pathway', element: <Pathway /> },
+      { path: 'navigation', element: <HAVEN /> },
       { path: 'resources', element: <Resources /> },
       { path: 'tools', element: <Tools /> },
       { path: 'pack', element: <Pack /> },

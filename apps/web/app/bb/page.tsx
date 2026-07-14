@@ -24,7 +24,7 @@ export default function BBPage() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>BB — Pathway Caseworker</h1>
+      <h1>BB — HAVEN Caseworker</h1>
 
       <div style={{ marginBottom: 20 }}>
         {history.map((m, i) => (

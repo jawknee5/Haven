@@ -4,7 +4,7 @@ import AppShell from './AppShell';
 import Home from '../pages/Home/Home';
 import Login from '../pages/Login/Login';
 import Dashboard from '../pages/Dashboard/Dashboard';
-import Pathway from '../pages/Pathway/Pathway';
+import HAVEN from '../pages/HAVEN/HAVEN';
 import Resources from '../pages/Resources/Resources';
 import Housing from '../pages/Housing/Housing';
 import Tools from '../pages/Tools/Tools';
@@ -24,7 +24,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <ProtectedRoute element={<Dashboard />} /> },
       { path: 'dashboard', element: <ProtectedRoute element={<Dashboard />} /> },
-      { path: 'pathway', element: <ProtectedRoute element={<Pathway />} /> },
+      { path: 'navigation', element: <ProtectedRoute element={<HAVEN />} /> },
       { path: 'resources', element: <ProtectedRoute element={<Resources />} /> },
       { path: 'housing', element: <ProtectedRoute element={<Housing />} /> },
       { path: 'survival-bible', element: <ProtectedRoute element={<Tools />} /> },

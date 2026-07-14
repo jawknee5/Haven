@@ -30,15 +30,15 @@ export function ResourceCategoryGrid({ categories, onCategorySelect }: ResourceC
           className={clsx(
             'glass-card p-4 flex flex-col items-start gap-3 touch-active',
             'hover:bg-white/[0.04] active:scale-[0.97] transition-all duration-150',
-            activeCategory === cat.id && 'ring-1 ring-pathway-teal/40'
+            activeCategory === cat.id && 'ring-1 ring-haven-teal/40'
           )}
         >
           <div className={clsx('w-10 h-10 rounded-xl flex items-center justify-center', cat.color)}>
             <Icon name={cat.icon as any} size={20} className="text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-pathway-textPrimary">{cat.name}</h3>
-            <p className="text-[11px] text-pathway-textMuted">{cat.count} resources</p>
+            <h3 className="text-sm font-semibold text-haven-textPrimary">{cat.name}</h3>
+            <p className="text-[11px] text-haven-textMuted">{cat.count} resources</p>
           </div>
         </button>
       ))}

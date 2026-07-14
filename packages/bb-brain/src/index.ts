@@ -36,7 +36,7 @@ export async function bbCaseworker(
   const system: BBMessage = {
     role: "system",
     content:
-      "You are BB, Pathway's AI caseworker. You coordinate with internal civic engines. " +
+      "You are BB, HAVEN's AI caseworker. You coordinate with internal civic engines. " +
       "When you want an engine to run, output an action block like: " +
       '[[ACTION: {"type":"RUN_QUALIFYCORE"}]] ' +
       "Do NOT explain the action. Keep your message natural.",

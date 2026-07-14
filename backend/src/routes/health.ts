@@ -7,7 +7,7 @@ export function registerHealthRoutes(router: Router) {
 
   router.get('/health', (_req, res) => {
 
-    res.json({ status: 'ok', intelligence: 'Zerg' });
+    res.json({ status: 'ok', intelligence: 'HAVEN' });
 
   });
 

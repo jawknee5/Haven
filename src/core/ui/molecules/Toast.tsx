@@ -12,10 +12,10 @@ interface ToastProps {
 }
 
 const typeStyles: Record<ToastType, string> = {
-  success: 'bg-pathway-success/90 text-white',
-  error: 'bg-pathway-error/90 text-white',
-  warning: 'bg-pathway-warning/90 text-black',
-  info: 'bg-pathway-teal/90 text-white',
+  success: 'bg-haven-success/90 text-white',
+  error: 'bg-haven-error/90 text-white',
+  warning: 'bg-haven-warning/90 text-black',
+  info: 'bg-haven-teal/90 text-white',
 };
 
 export function Toast({ message, type = 'info', onDismiss, duration = 4000 }: ToastProps) {
