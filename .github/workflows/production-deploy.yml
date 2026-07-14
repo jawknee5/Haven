@@ -1,4 +1,4 @@
-name: 🚀 HAVEN Genesis - Production Deploy
+name: 🚀 Pathway Genesis - Production Deploy
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: haven-genesis/frontend
+  IMAGE_NAME: pathway-genesis/frontend
 
 jobs:
   build-and-test:
@@ -131,7 +131,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: production
-      url: https://haven-genesis.com
+      url: https://pathway-genesis.com
 
     steps:
       - name: 📥 Checkout code
@@ -157,7 +157,7 @@ jobs:
       - name: ✅ Verify deployment
         run: |
           for i in {1..30}; do
-            if curl -f https://haven-genesis.com/health 2>/dev/null; then
+            if curl -f https://pathway-genesis.com/health 2>/dev/null; then
               echo "✅ Deployment successful"
               exit 0
             fi
@@ -174,7 +174,7 @@ jobs:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
           payload: |
             {
-              "text": "🚀 HAVEN Genesis Deployment",
+              "text": "🚀 Pathway Genesis Deployment",
               "blocks": [
                 {
                   "type": "section",
