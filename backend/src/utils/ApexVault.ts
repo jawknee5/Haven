@@ -1,5 +1,5 @@
 /**
- * Apex Vault Integration for Pathway
+ * ApexVault Integration for Haven
  * Replaces basic prismaVault.ts with production-grade encryption
  * 
  * This module integrates Apex_Vault into Havens's case management system,
