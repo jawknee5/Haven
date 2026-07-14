@@ -1,6 +1,6 @@
-# Backend Reliability Engine - Pathway Edition
+# Backend Reliability Engine - Haven Edition
 
-Military-grade API shell for Pathway backend.
+Military-grade API shell for Haven backend.
 
 ## Features
 
@@ -9,7 +9,7 @@ Military-grade API shell for Pathway backend.
 - **Unified Error Model** - Consistent error responses
 - **Rate Limiting** - Protect BB endpoints
 - **Circuit Breakers** - Resilience for external APIs
-- **Health Checks** - Monitor all Pathway engines
+- **Health Checks** - Monitor all Haven engines
 - **Timing Instrumentation** - Performance visibility
 - **Retry Logic** - Automatic recovery
 - **Security Headers** - CORS, CSP, etc.
@@ -50,13 +50,14 @@ Request → Correlation ID → Logging → Rate Limit → Route Handler
 - `app/routes/external_demo.py` - Resilience demo
 - `requirements.txt` - Dependencies
 
-## Integration with Pathway
+## Integration with Haven
 
 Works with:
-- Pathway backend/src/server.ts (Node.js)
+- Haven backend/src/server.ts (Node.js)
 - Can proxy or integrate directly
 - Adds reliability layer to existing endpoints
-- Zero changes to Pathway core logic
+- Zero changes to Haven
+-  core logic
 
 ## Production Ready
 
