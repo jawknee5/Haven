@@ -24,9 +24,24 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, EmailStr, Field
 
 from auth import require_role, get_current_user
-from database import db
+from database import audit_log_col, db
 from models import new_id
 from vault import encrypt_field
+
+
+async def _write_audit(actor: dict, action: str, target: str, meta: dict | None = None) -> None:
+    """Immutable insert-only audit event."""
+    from database import utcnow
+    await audit_log_col.insert_one({
+        "id": new_id(),
+        "actor_id": actor.get("id"),
+        "actor_name": actor.get("name"),
+        "actor_role": actor.get("role"),
+        "action": action,
+        "target": target,
+        "meta": meta or {},
+        "created_at": utcnow().isoformat(),
+    })
 
 router = APIRouter(prefix="/integration-requests", tags=["integrations"])
 
@@ -126,6 +141,9 @@ async def create_integration_request(
     }
     await db.integration_requests.insert_one(doc)
     doc.pop("_id", None)
+
+    await _write_audit(user, "integration_request.create", doc["id"],
+        {"agency": body.agency_name, "program": body.program, "urgency": body.urgency})
 
     return IntegrationRequestOut(
         **doc,
@@ -282,5 +300,9 @@ async def authorize(req_id: str, body: AuthorizeRequest, user: dict = Depends(_A
         "credentials_vault": encrypted_credentials or None,
     }
     await db.integration_requests.update_one({"id": req_id}, {"$set": update})
+
+    await _write_audit(user, "integration_request.authorize", req_id,
+        {"signed_by": body.signed_by_name, "signed_by_title": body.signed_by_title,
+         "has_oauth": bool(body.oauth_client_id), "has_api_key": bool(body.api_key)})
 
     return {"ok": True, "id": req_id, "status": "active", "message": "Integration authorized. BB will pick it up on the next dispatch cycle."}

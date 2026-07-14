@@ -1,0 +1,196 @@
+HAVEN PLATFORM -- AI CONTEXT PASSDOWN v4.1
+==========================================
+"Helping Agencies, Volunteers, and Everyone Navigate."
+Tagline: "Help has a home." | Domain: homeishaven.cloud
+Creator: Johnathan R. Rodriquez | Version: 4.1.0 | 2025
+
+--- WHAT HAVEN IS ---
+HAVEN is a universal civic navigation platform built for EVERYONE. Not just
+underserved or housing-insecure residents -- built for any person who needs to
+interact with government at any level, for any reason.
+
+HAVEN simplifies, guides, and automates ALL government-related interactions:
+  Justice system | Transportation (DMV renewals, registration transfers, public
+  transit) | Benefits & aid | Unemployment & employment | Food | Shelter
+  (emergency, interim, Section 8, general) | Healthcare | IRS & tax | Domestic
+  violence | Immigration | Veterans services | Senior services | Youth services
+  | Utilities | Childcare | Legal aid | Reentry | Mental health | Substance use
+  | -- and every other area where government intersects with daily life.
+
+Data Processing: Collection, transmission, storage, and processing of highly
+sensitive PII including SSNs, DOBs, tax forms, income brackets, and medical
+routing data -- all protected via the Apex Vault (AES-256-GCM).
+
+BB is HAVEN's digital multi-language AI Caseworker assistant that guides or
+automates every interaction seamlessly, across every government domain.
+
+--- USER ROLES ---
+RESIDENT -- cases, docs, 13 form templates, BB, caseworker messaging, case PDF,
+  Survival Bible, resource map, offline mode, onboarding curriculum.
+  Demo: resident@haven.demo / james@haven.demo / sarah@haven.demo (Demo2026!)
+
+CASEWORKER -- case queue (urgency-sorted), claim cases, tasks, verify docs, BB
+  autofill, agency submissions, case PDF, workload heatmap, BB Browser Control,
+  custom form builder, integration submissions panel.
+  Demo: caseworker@haven.demo (Demo2026!) -- Alex Rivera
+
+ADMIN -- all caseworker + user CRUD, agency OAuth connect/disconnect, audit log,
+  analytics, GDPR cascading purge: DELETE /api/admin/users/{id}/purge
+  Demo: admin@haven.demo (Demo2026!) -- Jordan Lee
+
+ARCHITECT -- superuser: vault status, engine health, integration outreach tool,
+  full DB access, all admin functions + synthetic engine self-test.
+  Account: jawknee.rodriquez@gmail.com (Architect2026!)
+
+--- BB -- AI CIVIC CONCIERGE ---
+Warm, calm, dignity-first, never judgmental. Adapts tone to role + emotional state.
+Residents feel relief. Caseworkers feel like BB saved them an hour of work.
+
+1. Multi-turn chat (12-turn history): Resident=plain | Caseworker=operational | Admin=metrics
+2. Deterministic autofill -- vault fields decrypted before mapping, zero LLM cost;
+   BB never receives ciphertext dicts (phone/SSN/DOB/income all decrypted first)
+3. Form field analysis -- paste HTML, BB extracts all fields with metadata
+4. Application tracking across 12 agencies with timeline + status sync
+5. Crisis: CRITICAL (suicide/DV/evicted-today/homeless-tonight) -> hotline + action
+   HIGH (abuse/no-food/kids-hungry) -> flagged with resources
+6. BB Browser Control -- Playwright automates real agency websites
+   /caseworker/bb-browser | WS: /api/bb/browser/stream/{id}
+   Requires: pip install playwright && playwright install chromium
+7. Voice: Chrome/Edge only. Firefox: accessible text-only badge (role="note"),
+   full keyboard nav, WCAG 2.1 AA -- no broken controls on unsupported browsers
+8. Survival Bible: water/food/shelter/fire/first-aid/navigation/10 knots
+9. Onboarding curriculum (role-aware modules, 80% quiz pass threshold)
+
+LLM: Ollama llama3.2:3b (local, FREE). Fallback: Claude Sonnet 4.5 via
+  EMERGENT_LLM_KEY (blank = fully disabled). /api/health shows active engine.
+
+--- APEX VAULT -- SECURITY ARCHITECTURE ---
+File: backend/vault.py. ALL PII vault-encrypted before MongoDB insert. No plaintext on disk.
+
+Algorithm : AES-256-GCM authenticated encryption (envelope pattern)
+KDF       : scrypt (N=2^14, r=8, p=1, maxmem=64MB) -> 256-bit KEK from VAULT_MASTER_KEY
+DEK       : 256-bit random per-field, AES-GCM wrapped by KEK
+Integrity : HMAC-SHA256 over (ciphertext+nonce+dek_wrap+salt), timing-safe compare
+Rotation  : VaultRotator re-encrypts under new master, no plaintext exposure
+GDPR shred: deleting user record orphans ciphertext -- irreversible by design
+
+SENSITIVE_FIELDS (auto-encrypted via protect_document()):
+  ssn, dob, phone, income, bank_account, address_line1, case_number
+
+All 12 routers patched -- zero plaintext PII surfaces in the entire backend.
+OAuth tokens vault-encrypted in integration_tokens; decrypted in-memory only.
+Signed URLs (CC6.7): HMAC-SHA256, TTL=900s. Raw bytes never in list responses.
+  GET /api/documents/{id}/signed-url  ->  GET /api/documents/{id}/download
+Token Auto-Refresh (FedRAMP IA-5): token_refresh_job.py polls every 120s,
+  rotates tokens 300s before expiry, vault-encrypts new set, emits audit record.
+  Manual: POST /api/integrations/{code}/oauth/refresh
+  RefreshCapableMixin on: OAuth2Adapter, LoginGovAdapter, VaAdapter, SsaAdapter
+
+--- COMPLIANCE STATUS ---
+SOC 2 Type II (audit window open): AES-256-GCM vault (CC6.1), signed URL access
+  (CC6.7), immutable insert-only audit_log (all 12 routers, 7yr TTL), MongoDB TTL
+  indexes: oauth_states(15min) bb_sessions(90d) notifications(30d) audit_log(7yr)
+  /health/live | /health/ready | /health (full: vault+DB+LLM+token_job, v4.1.0)
+  35 indexes / 14 collections, idempotent on startup (scripts/ensure_indexes.py)
+
+FedRAMP (architecture validated, registration pending): PKCE mandatory
+  (Login.gov/VA), single-use state tokens, token auto-refresh job, no secrets in code
+
+GDPR/CCPA: Cascading purge deletes users/cases/tasks/messages/documents/
+  form_submissions/application_tracking/bb_sessions/notifications; anonymizes
+  integration_submissions. Vault shred: ciphertext orphaned post-deletion.
+  DATA_RETENTION_POLICY.md + DPA_TEMPLATE.md in Executive_Portfolio/
+
+Section 508/WCAG 2.1 AA: Firefox voice fallback, ARIA roles/live-regions,
+  ACCESSIBILITY_REPORT.md, scripts/accessibility-audit.js (Pa11y+axe-core)
+
+--- TECH STACK ---
+Frontend: React 19+TypeScript, Vite 7.3, TailwindCSS, shadcn/ui, Zustand,
+  React Router v7, Leaflet, IndexedDB offline queue, Web Speech API, service worker
+Backend: Python 3.12, FastAPI, Uvicorn (2 workers), MongoDB 7.0+Motor 3.x,
+  Pydantic v2, python-jose JWT HS256, bcrypt, ReportLab 5.x, httpx async
+Infra: Docker Compose (5 services), nginx 1.27-alpine (TLS 1.3), Let's Encrypt
+Services: nginx(80/443) | frontend(3000) | backend(8000) |
+  mongo:7.0(27017,vol:mongo-data) | ollama(11434,vol:ollama-models)
+Startup: ensure_seed() -> ensure_default_integrations() ->
+  ensure_indexes(db) -> TokenRefreshJob.start()
+
+--- CASE LIFECYCLE ---
+Status: new->enriched->routed->active->resolved->closed | Urgency: 0-100
+Categories: housing|food|health|benefits|employment|legal|crisis|general
+Case PDF (8-section): GET /api/cases/{id}/packet.pdf
+
+--- FORM TEMPLATES (13 pre-built) ---
+CalFresh/SNAP(30d) | HUD-Sec8(30d) | Medi-Cal(45d) | VA-Disability(125d)
+SSI(90d) | TANF/CalWORKs(45d) | WIC(10d) | Unemployment/EDD(21d)
+IRS-VITA(21d) | DMV-REAL-ID(14d) | Eviction-Defense(3d) | CPS-Referral(1d)
+HAVEN-Universal-Intake(1d)
+Each: BB autofill (deterministic, zero cost) | submit | PDF export
+
+--- AGENCY INTEGRATIONS (12) ---
+HUD_SEC8(housing,30d) | SSA_SSI(benefits,90d) | USDA_SNAP(food,30d)
+CMS_MEDICAID(health,45d) | VA_BENEFITS(benefits,125d) | IRS_EFILE(benefits,21d)
+DMV_ID(identity,14d) | DOL_UI(employment,21d) | HHS_TANF(benefits,45d)
+CPS_REPORT(family,1d) | COURT_EFILE(legal,3d) | WIC_CA(health,10d)
+Adapters: logingov PKCE+OIDC (HUD/USDA/IRS/WIC/DOL/DMV/HHS/CMS) |
+  va(VA+PKCE) | ssa | oauth2 | simulated(default, no creds needed)
+Flow: POST /api/integrations/submit -> confirmation_id+status+SLA ->
+  stored integration_submissions + mirrored application_tracking
+OAuth: /oauth/start -> agency -> callback(PKCE+state single-use) ->
+  vault-encrypted storage -> auto-refresh via background job
+
+--- RESOURCE MAP ---
+113 real San Jose/SCC resources (Leaflet, 18 categories: shelter/food/health/
+  crisis/legal/employment/childcare/benefits/reentry/veterans/youth/utility/
+  immigration/DV/mental-health/substance-use/transportation/seniors)
+Core 9: Boccardo(shelter)|Sacred Heart(food)|Valley Homeless Healthcare(health)|
+  SCC Crisis Line 855-278-4204|Bill Wilson Ctr|Law Foundation SV|
+  work2future|Family Supportive Housing|Loaves&Fishes
+
+--- KEY ENV VARS ---
+VAULT_MASTER_KEY             min 32 chars, NEVER reuse JWT_SECRET in prod
+JWT_SECRET                   HS256 key (openssl rand -hex 32)
+SIGNED_URL_SECRET            HMAC key for document download URLs
+SIGNED_URL_TTL_SECONDS       900 | BLOB_STORE_BACKEND local|s3
+PUBLIC_BASE_URL              https://homeishaven.cloud
+TOKEN_REFRESH_BUFFER_SECONDS 300 | OLLAMA_URL http://ollama:11434
+OLLAMA_MODEL                 llama3.2:3b | EMERGENT_LLM_KEY blank=disabled
+OAUTH_ENV                    sandbox|prod | OAUTH_STATE_TTL_SECONDS 900
+AUDIT_LOG_RETENTION_DAYS 2555(7yr)|BB_SESSION_RETENTION_DAYS 90|NOTIFICATION_RETENTION_DAYS 30
+
+--- DATA MODEL (17 MongoDB collections) ---
+users|cases|tasks|messages|documents|forms|form_submissions|resources|
+bb_sessions|bb_browser_sessions|application_tracking|audit_log|integrations|
+integration_tokens|oauth_states|integration_submissions|notifications
+Vault-encrypted: phone(users), ssn/dob/income/address_line1(cases.intake_data,
+  form_submissions.data, integration_submissions.payload),
+  access_token/refresh_token/id_token(integration_tokens)
+
+--- DEMO ACCOUNTS & SEEDED DATA ---
+resident@haven.demo | james@haven.demo | sarah@haven.demo -- Demo2026!
+caseworker@haven.demo (Alex Rivera) | admin@haven.demo (Jordan Lee) -- Demo2026!
+jawknee.rodriquez@gmail.com -- Architect2026!
+Seeded: 6 users | 113 resources | 6 cases | 12 tasks | 12 messages |
+  13 form templates | 12 agency integrations
+Cases: eviction-5d(92)|food-insecurity(74)|mental-health(85)|
+  unemployment(58)|domestic-violence(96)|veteran-VA(62)
+
+--- DEPLOYMENT ---
+Start:   docker compose up -d --pull always
+Rebuild: docker compose build --no-cache
+Seed:    docker compose exec backend python seed.py
+Health:  curl https://homeishaven.cloud/api/health
+Limits: BB needs playwright install chromium|Firefox voice uses text fallback|
+  i18n not activated|S3 needs boto3+S3_DOCUMENT_BUCKET
+
+--- EXECUTIVE PORTFOLIO (Executive_Portfolio/) ---
+00_INDEX.md | 01_HAVEN_Overview.md | 02_Pricing_Model.md
+03_Revenue_Growth_5Yr.md | 04_Governmental_Savings.md
+05_IP_Trademark_Statement.md | 06_MVP_GoLive_Readiness.md
+07_Apex_Vault_Specs.md | 08_SOC2_Compliance.md
+09_FedRAMP_Compliance.md | 10_GDPR_CCPA_Compliance.md
+11_Accessibility_WCAG_508.md | HAVEN_ONE_PAGER.md
+HAVEN_UNIFIED_DOCUMENTATION_V3.md | DATA_RETENTION_POLICY.md
+DPA_TEMPLATE.md | ACCESSIBILITY_REPORT.md
+
+END v4.1

@@ -13,13 +13,27 @@ from fastapi.responses import StreamingResponse
 
 from auth import get_current_user
 from database import (
-    cases_col, db, documents_col, messages_col, tasks_col, users_col,
+    audit_log_col, cases_col, db, documents_col, messages_col, tasks_col, users_col,
     utcnow,
 )
+from models import new_id
+from vault import unprotect_document, decrypt_field, is_encrypted, SENSITIVE_FIELDS
 
 router = APIRouter(tags=["case-packet"])
 
 submissions_col = db["form_submissions"]
+
+
+def _unvault_user(user: dict) -> dict:
+    """Decrypt vault-encrypted fields on a user dict for PDF rendering."""
+    out = dict(user)
+    for field in SENSITIVE_FIELDS:
+        if is_encrypted(out.get(field)):
+            try:
+                out[field] = decrypt_field(out[field])
+            except Exception:
+                out[field] = "[encrypted]"
+    return out
 
 
 def _page_header(story, label: str, styles):
@@ -299,6 +313,10 @@ async def download_case_packet(case_id: str, user: dict = Depends(get_current_us
     if role == "caseworker" and case.get("caseworker_id") != user["id"]:
         raise HTTPException(status_code=403, detail="Forbidden")
 
+    # Decrypt vault-protected intake_data before embedding in PDF
+    if case.get("intake_data"):
+        case["intake_data"] = unprotect_document(case["intake_data"])
+
     # Fetch all related data
     tasks       = await tasks_col.find({"case_id": case_id}, {"_id": 0}).to_list(500)
     messages    = await messages_col.find({"case_id": case_id}, {"_id": 0}).sort("created_at", 1).to_list(500)
@@ -308,13 +326,31 @@ async def download_case_packet(case_id: str, user: dict = Depends(get_current_us
         {"_id": 0},
     ).sort("submitted_at", 1).to_list(200)
 
-    resident   = await users_col.find_one({"id": case["resident_id"]}, {"_id": 0, "password_hash": 0}) or {}
-    caseworker = None
+    resident_raw   = await users_col.find_one({"id": case["resident_id"]}, {"_id": 0, "password_hash": 0}) or {}
+    resident       = _unvault_user(resident_raw)
+    caseworker     = None
     if case.get("caseworker_id"):
-        caseworker = await users_col.find_one({"id": case["caseworker_id"]}, {"_id": 0, "password_hash": 0})
+        cw_raw     = await users_col.find_one({"id": case["caseworker_id"]}, {"_id": 0, "password_hash": 0})
+        caseworker = _unvault_user(cw_raw) if cw_raw else None
+
+    # Strip blob bytes from document listing — PDF shows metadata index only
+    for d in documents:
+        d.pop("data_url", None)
 
     pdf_bytes = _build_packet(case, tasks, messages, documents, submissions, resident, caseworker)
-    filename  = f"HAVEN_CasePacket_{case_id[:8]}.pdf"
+
+    await audit_log_col.insert_one({
+        "id": new_id(),
+        "actor_id": user.get("id"),
+        "actor_name": user.get("name"),
+        "actor_role": user.get("role"),
+        "action": "case.packet_download",
+        "target": case_id,
+        "meta": {"filename": f"HAVEN_CasePacket_{case_id[:8]}.pdf"},
+        "created_at": utcnow().isoformat(),
+    })
+
+    filename = f"HAVEN_CasePacket_{case_id[:8]}.pdf"
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type="application/pdf",

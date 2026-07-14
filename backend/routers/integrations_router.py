@@ -21,7 +21,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, require_role
-from agency_adapters import get_adapter, has_live_config, generate_pkce_pair, _detect_family, OAUTH_STATE_TTL_SECONDS
+from agency_adapters import (
+    get_adapter, has_live_config, generate_pkce_pair,
+    _detect_family, OAUTH_STATE_TTL_SECONDS,
+    TokenRefreshError,
+)
 from database import (
     application_tracking_col,
     audit_log_col,
@@ -33,6 +37,38 @@ from database import (
     utcnow,
 )
 from models import new_id
+from vault import encrypt_field, decrypt_field, is_encrypted, protect_document
+
+# ── Token vault helpers ───────────────────────────────────────────────────────
+# OAuth access_token and refresh_token are vault-encrypted at rest.
+# Only the in-memory adapter receives plaintext tokens for API calls.
+
+_TOKEN_FIELDS = ("access_token", "refresh_token", "id_token")
+
+
+def _encrypt_token_doc(tokens: dict) -> dict:
+    """Vault-encrypt sensitive token fields before writing to integration_tokens."""
+    out = dict(tokens)
+    for field in _TOKEN_FIELDS:
+        if out.get(field) and not is_encrypted(out.get(field)):
+            out[field] = encrypt_field(str(out[field]), resource_type=f"oauth_token:{field}")
+    return out
+
+
+def _decrypt_token_doc(doc: dict | None) -> dict | None:
+    """Decrypt vault-encrypted token fields for in-memory adapter use only.
+    Never returned to API callers.
+    """
+    if doc is None:
+        return None
+    out = dict(doc)
+    for field in _TOKEN_FIELDS:
+        if is_encrypted(out.get(field)):
+            try:
+                out[field] = decrypt_field(out[field])
+            except Exception:
+                out[field] = None   # treat as expired/invalid
+    return out
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
 
@@ -379,8 +415,9 @@ async def submit_to_agency(body: SubmissionCreate, user: dict = Depends(get_curr
     if user["role"] == "resident" and case["resident_id"] != user["id"]:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    # Load OAuth tokens for this integration if present (live mode)
-    tokens_doc = await integration_tokens_col.find_one({"integration_code": body.integration_code}, {"_id": 0})
+    # Load OAuth tokens for this integration if present — decrypt before passing to adapter
+    raw_tokens_doc = await integration_tokens_col.find_one({"integration_code": body.integration_code}, {"_id": 0})
+    tokens_doc = _decrypt_token_doc(raw_tokens_doc)
     adapter = get_adapter(integ, tokens=tokens_doc)
     try:
         result = await adapter.submit(body.payload or {}, case)
@@ -405,7 +442,8 @@ async def submit_to_agency(body: SubmissionCreate, user: dict = Depends(get_curr
         "confirmation_id": confirmation_id,
         "status": status,
         "missing_fields": missing,
-        "payload": body.payload,
+        # Vault-encrypt sensitive payload fields (ssn, dob, income, etc.) before storage
+        "payload": protect_document(body.payload),
         "notes": body.notes,
         "adapter_mode": result.get("mode", adapter.mode),
         "submitted_at": utcnow().isoformat(),
@@ -471,8 +509,10 @@ async def sync_submission(submission_id: str, user: dict = Depends(get_current_u
         raise HTTPException(status_code=404, detail="Integration no longer exists")
 
     if has_live_config(integ["code"]):
-        tokens_doc = await integration_tokens_col.find_one({"integration_code": integ["code"]}, {"_id": 0})
-        adapter = get_adapter(integ, tokens=tokens_doc)
+        # Load + decrypt OAuth tokens for adapter (plaintext never stored at rest)
+        raw_tokens_doc = await integration_tokens_col.find_one({"integration_code": integ["code"]}, {"_id": 0})
+        tokens_for_adapter = _decrypt_token_doc(raw_tokens_doc)
+        adapter = get_adapter(integ, tokens=tokens_for_adapter)
         try:
             r = await adapter.sync_status(doc["confirmation_id"])
             new_status = r["status"]
@@ -616,19 +656,21 @@ async def oauth_callback(code: str, state: str):
         tokens = await adapter.exchange_code(code, redirect_uri, pkce_verifier=pkce_verifier)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"OAuth exchange failed: {e}")
+    # Vault-encrypt token fields before persistence—plaintext tokens never land on disk
+    encrypted_tokens = _encrypt_token_doc({
+        "integration_code": integration_code,
+        "access_token": tokens.get("access_token"),
+        "refresh_token": tokens.get("refresh_token"),
+        "id_token": tokens.get("id_token"),
+        "expires_in": tokens.get("expires_in"),
+        "token_type": tokens.get("token_type", "bearer"),
+        "adapter_family": adapter.adapter_family,
+        "raw": "[redacted]",   # raw token response not stored—fields captured above
+        "authorized_at": utcnow().isoformat(),
+    })
     await integration_tokens_col.update_one(
         {"integration_code": integration_code},
-        {"$set": {
-            "integration_code": integration_code,
-            "access_token": tokens.get("access_token"),
-            "refresh_token": tokens.get("refresh_token"),
-            "id_token": tokens.get("id_token"),
-            "expires_in": tokens.get("expires_in"),
-            "token_type": tokens.get("token_type", "bearer"),
-            "adapter_family": adapter.adapter_family,
-            "raw": tokens,
-            "authorized_at": utcnow().isoformat(),
-        }},
+        {"$set": encrypted_tokens},
         upsert=True,
     )
     # State is single-use — always delete after use
@@ -646,6 +688,70 @@ async def oauth_disconnect(integration_code: str, user: dict = Depends(require_r
     await integration_tokens_col.delete_one({"integration_code": integration_code})
     await write_audit(user, "integration.oauth_disconnect", integration_code)
     return {"ok": True}
+
+
+@router.post("/{integration_code}/oauth/refresh")
+async def oauth_refresh_tokens(integration_code: str, user: dict = Depends(require_role("admin"))):
+    """Manually trigger single-use refresh token rotation (FedRAMP AC-2 / IA-5).
+
+    Flow:
+      1. Decrypt stored refresh_token via Vault.
+      2. Call adapter.refresh_tokens() — token endpoint issues new token set.
+      3. Old refresh_token is invalidated server-side upon exchange.
+      4. New token set is vault-encrypted and upserted — old plaintext never touches disk.
+      5. Audit event recorded with actor + timestamp (no token values logged).
+    """
+    integ = await integrations_col.find_one({"code": integration_code}, {"_id": 0})
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    if not has_live_config(integration_code):
+        raise HTTPException(status_code=400, detail="Integration is in simulated mode — no token to refresh")
+
+    raw_token_doc = await integration_tokens_col.find_one({"integration_code": integration_code}, {"_id": 0})
+    if not raw_token_doc:
+        raise HTTPException(status_code=404, detail="No stored tokens — authorize first via /oauth/start")
+
+    decrypted = _decrypt_token_doc(raw_token_doc)
+    refresh_token = decrypted.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(status_code=400, detail="No refresh_token stored — re-authorize via /oauth/start")
+
+    adapter = get_adapter(integ, tokens=decrypted)
+    if not hasattr(adapter, "refresh_tokens"):
+        raise HTTPException(status_code=400, detail="Adapter does not support token refresh")
+
+    try:
+        new_tokens = await adapter.refresh_tokens(refresh_token)
+    except TokenRefreshError as e:
+        await write_audit(user, "integration.oauth_refresh_failed", integration_code, {"error": str(e)})
+        raise HTTPException(status_code=401, detail=str(e))
+
+    # Vault-encrypt + persist new token set — single-use: old refresh_token now invalid
+    encrypted = _encrypt_token_doc({
+        "integration_code": integration_code,
+        "access_token": new_tokens.get("access_token"),
+        "refresh_token": new_tokens.get("refresh_token"),
+        "id_token": new_tokens.get("id_token"),
+        "expires_in": new_tokens.get("expires_in"),
+        "token_type": new_tokens.get("token_type", "bearer"),
+        "adapter_family": adapter.adapter_family,
+        "raw": "[redacted]",
+        "authorized_at": raw_token_doc.get("authorized_at"),
+        "last_refreshed_at": utcnow().isoformat(),
+    })
+    await integration_tokens_col.update_one(
+        {"integration_code": integration_code},
+        {"$set": encrypted},
+        upsert=True,
+    )
+    await write_audit(user, "integration.oauth_refresh", integration_code, {"adapter_family": adapter.adapter_family})
+    return {
+        "ok": True,
+        "integration_code": integration_code,
+        "adapter_family": adapter.adapter_family,
+        "refreshed_at": new_tokens.get("refreshed_at"),
+        "expires_in": new_tokens.get("expires_in"),
+    }
 
 
 # ============ Stats for dashboards ============

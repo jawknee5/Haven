@@ -10,9 +10,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from auth import get_current_user
-from database import cases_col, db, serialize_doc, serialize_list, utcnow
+from database import audit_log_col, cases_col, db, serialize_doc, serialize_list, utcnow
 from data.form_templates import FORM_TEMPLATES
 from models import new_id
+from vault import decrypt_field, is_encrypted, protect_document, SENSITIVE_FIELDS
 
 router = APIRouter(prefix="/form-templates", tags=["form-templates"])
 
@@ -27,8 +28,21 @@ def _template_by_id(tid: str) -> dict:
     return {}
 
 
+def _unvault_value(val):
+    """Decrypt a field value if it is a vault envelope, else return as-is."""
+    if is_encrypted(val):
+        try:
+            return decrypt_field(val)
+        except Exception:
+            return ""
+    return val
+
+
 def _autofill_from_user(user: dict, case: Optional[dict]) -> dict:
-    """Deterministic autofill — maps known user/case fields, no LLM cost."""
+    """Deterministic autofill — maps known user/case fields, no LLM cost.
+    All values are vault-decrypted before mapping so autofill never returns
+    ciphertext dicts instead of human-readable values.
+    """
     full = user.get("name", "")
     parts = full.split(" ", 1)
     intake = (case or {}).get("intake_data", {}) if case else {}
@@ -37,16 +51,16 @@ def _autofill_from_user(user: dict, case: Optional[dict]) -> dict:
         "first_name":      parts[0] if parts else "",
         "last_name":       parts[1] if len(parts) > 1 else "",
         "email":           user.get("email", ""),
-        "phone":           user.get("phone", ""),
-        "address":         intake.get("address", ""),
-        "city":            intake.get("city", ""),
-        "state":           intake.get("state", ""),
-        "zip":             intake.get("zip", ""),
-        "dob":             intake.get("dob", ""),
-        "ssn":             intake.get("ssn", ""),
-        "income":          intake.get("income", ""),
-        "household_size":  intake.get("household_size", ""),
-        "employer":        intake.get("employer", ""),
+        "phone":           _unvault_value(user.get("phone", "")),
+        "address":         _unvault_value(intake.get("address", "")),
+        "city":            _unvault_value(intake.get("city", "")),
+        "state":           _unvault_value(intake.get("state", "")),
+        "zip":             _unvault_value(intake.get("zip", "")),
+        "dob":             _unvault_value(intake.get("dob", "")),
+        "ssn":             _unvault_value(intake.get("ssn", "")),
+        "income":          _unvault_value(intake.get("income", "")),
+        "household_size":  _unvault_value(intake.get("household_size", "")),
+        "employer":        _unvault_value(intake.get("employer", "")),
     }
 
 
@@ -283,8 +297,19 @@ async def submit_template(
         "submitted_by": user["id"],
         "applicant_name": user["name"],
         "applicant_email": user.get("email", ""),
-        "data": body.data,
+        # Vault-protect sensitive fields in submission data before persistence
+        "data": protect_document(body.data),
         "submitted_at": utcnow().isoformat(),
     }
     await submissions_col.insert_one(doc)
+    await audit_log_col.insert_one({
+        "id": new_id(),
+        "actor_id": user.get("id"),
+        "actor_name": user.get("name"),
+        "actor_role": user.get("role"),
+        "action": "template.submit",
+        "target": sid,
+        "meta": {"template_id": template_id, "agency": t["agency"], "case_id": body.case_id},
+        "created_at": utcnow().isoformat(),
+    })
     return serialize_doc(doc)

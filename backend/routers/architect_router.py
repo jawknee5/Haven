@@ -15,11 +15,37 @@ from pydantic import BaseModel
 from auth import require_role, hash_password
 from database import (
     users_col, cases_col, resources_col, tasks_col,
-    messages_col, forms_col, db,
+    messages_col, forms_col, audit_log_col, db,
 )
 from engines import default_context, run_all_engines
-from vault import ApexVault
+from vault import ApexVault, encrypt_field, decrypt_field, is_encrypted, SENSITIVE_FIELDS
 import os
+
+
+def _unvault_user(user: dict) -> dict:
+    out = dict(user)
+    for field in SENSITIVE_FIELDS:
+        if is_encrypted(out.get(field)):
+            try:
+                out[field] = decrypt_field(out[field])
+            except Exception:
+                out[field] = "***"
+    return out
+
+
+async def _write_audit(actor_id: str, actor_role: str, action: str, target: str, meta: dict | None = None) -> None:
+    from models import new_id
+    from database import utcnow
+    await audit_log_col.insert_one({
+        "id": new_id(),
+        "actor_id": actor_id,
+        "actor_name": None,
+        "actor_role": actor_role,
+        "action": action,
+        "target": target,
+        "meta": meta or {},
+        "created_at": utcnow().isoformat(),
+    })
 
 router = APIRouter(prefix="/architect", tags=["architect"])
 
@@ -93,9 +119,11 @@ async def list_users(
             {"email": {"$regex": q, "$options": "i"}},
         ]
     users = await users_col.find(filt, {"password_hash": 0}).limit(limit).to_list(None)
+    result = []
     for u in users:
         u.pop("_id", None)
-    return users
+        result.append(_unvault_user(u))
+    return result
 
 
 class UserUpdate(BaseModel):
@@ -108,16 +136,20 @@ class UserUpdate(BaseModel):
 
 
 @router.patch("/users/{user_id}")
-async def update_user(user_id: str, body: UserUpdate, _: dict = Depends(_ARCHITECT_ONLY)):
+async def update_user(user_id: str, body: UserUpdate, actor: dict = Depends(_ARCHITECT_ONLY)):
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
     if "password" in updates:
         updates["password_hash"] = hash_password(updates.pop("password"))
+    # Vault-encrypt phone before persistence
+    if "phone" in updates and updates["phone"] and not is_encrypted(updates["phone"]):
+        updates["phone"] = encrypt_field(updates["phone"], resource_type="phone")
     if not updates:
         raise HTTPException(400, "No fields to update")
     updates["updated_at"] = datetime.now(timezone.utc).isoformat()
     r = await users_col.update_one({"id": user_id}, {"$set": updates})
     if not r.matched_count:
         raise HTTPException(404, "User not found")
+    await _write_audit(actor["id"], actor["role"], "architect.user_update", user_id, {"fields_changed": list(updates.keys())})
     return {"ok": True}
 
 

@@ -31,6 +31,7 @@ from browser_engine import (
 )
 from database import (
     application_tracking_col,
+    audit_log_col,
     bb_sessions_col,
     cases_col,
     serialize_doc,
@@ -38,6 +39,33 @@ from database import (
     utcnow,
     users_col,
 )
+from vault import decrypt_field, is_encrypted, SENSITIVE_FIELDS
+
+
+# ── Vault helper ──────────────────────────────────────────────────────────────
+
+def _unvault(val: object) -> str:
+    """Decrypt a vault envelope if present, else return value as-is."""
+    if is_encrypted(val):
+        try:
+            return decrypt_field(val)  # type: ignore[arg-type]
+        except Exception:
+            return ""
+    return val or ""
+
+
+async def _write_audit(actor: dict, action: str, target: str, meta: dict | None = None) -> None:
+    """Immutable insert-only audit event."""
+    await audit_log_col.insert_one({
+        "id": new_id(),
+        "actor_id": actor.get("id"),
+        "actor_name": actor.get("name"),
+        "actor_role": actor.get("role"),
+        "action": action,
+        "target": target,
+        "meta": meta or {},
+        "created_at": utcnow().isoformat(),
+    })
 from models import (
     BBApplicationTrackRequest,
     BBAutofillRequest,
@@ -116,27 +144,31 @@ async def analyze_form(payload: BBFormAnalyzeRequest, user: dict = Depends(get_c
 
 
 def _build_user_data_payload(user: dict, case: Optional[dict]) -> dict:
+    """Build autofill payload from user + case data.
+    All fields are vault-decrypted before returning so BB never maps
+    AES-256-GCM envelope dicts onto form fields.
+    """
     full_name = user.get("name", "")
     parts = full_name.split(" ", 1)
     first_name = parts[0] if parts else ""
     last_name = parts[1] if len(parts) > 1 else ""
     intake = (case or {}).get("intake_data", {}) if case else {}
     return {
-        "full_name": full_name,
-        "first_name": first_name,
-        "last_name": last_name,
-        "email": user.get("email", ""),
-        "phone": user.get("phone", ""),
-        "address": intake.get("address", ""),
-        "city": intake.get("city", ""),
-        "state": intake.get("state", ""),
-        "zip": intake.get("zip", ""),
-        "dob": intake.get("dob", ""),
-        "ssn": intake.get("ssn", ""),
-        "income": intake.get("income", ""),
-        "household_size": intake.get("household_size", ""),
-        "employer": intake.get("employer", ""),
-        "occupation": intake.get("occupation", ""),
+        "full_name":      full_name,
+        "first_name":     first_name,
+        "last_name":      last_name,
+        "email":          user.get("email", ""),
+        "phone":          _unvault(user.get("phone", "")),
+        "address":        _unvault(intake.get("address", "")),
+        "city":           _unvault(intake.get("city", "")),
+        "state":          _unvault(intake.get("state", "")),
+        "zip":            _unvault(intake.get("zip", "")),
+        "dob":            _unvault(intake.get("dob", "")),
+        "ssn":            _unvault(intake.get("ssn", "")),
+        "income":         _unvault(intake.get("income", "")),
+        "household_size": _unvault(intake.get("household_size", "")),
+        "employer":       _unvault(intake.get("employer", "")),
+        "occupation":     _unvault(intake.get("occupation", "")),
     }
 
 
@@ -185,6 +217,10 @@ async def track_application(payload: BBApplicationTrackRequest, user: dict = Dep
         "notes": payload.notes or "",
     }
     await application_tracking_col.insert_one(track)
+    await _write_audit(
+        user, "bb.application_track", track["id"],
+        {"case_id": payload.case_id, "agency": payload.agency_name}
+    )
     return serialize_doc(track)
 
 

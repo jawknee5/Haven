@@ -7,68 +7,190 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
-# ===== routers (after env load) =====
-from browser_engine import close_all_sessions  # noqa: E402
-from database import db  # noqa: E402
-from routers.auth_router import router as auth_router  # noqa: E402
-from routers.admin_router import router as admin_router  # noqa: E402
-from routers.architect_router import router as architect_router  # noqa: E402
-from routers.bb_router import router as bb_router  # noqa: E402
-from routers.case_ops_router import router as case_ops_router  # noqa: E402
-from routers.case_packet_router import router as case_packet_router  # noqa: E402
-from routers.cases_router import router as cases_router  # noqa: E402
+# ── routers (after env load) ─────────────────────────────────────────────────
+from browser_engine import close_all_sessions                          # noqa: E402
+from database import db                                                 # noqa: E402
+from routers.auth_router import router as auth_router                  # noqa: E402
+from routers.admin_router import router as admin_router                # noqa: E402
+from routers.architect_router import router as architect_router        # noqa: E402
+from routers.bb_router import router as bb_router                      # noqa: E402
+from routers.case_ops_router import router as case_ops_router          # noqa: E402
+from routers.case_packet_router import router as case_packet_router    # noqa: E402
+from routers.cases_router import router as cases_router                # noqa: E402
 from routers.forms_resources_router import router as forms_resources_router  # noqa: E402
 from routers.integration_request_router import router as integration_request_router  # noqa: E402
-from routers.integrations_router import ensure_default_integrations, router as integrations_router  # noqa: E402
+from routers.integrations_router import (                              # noqa: E402
+    ensure_default_integrations,
+    router as integrations_router,
+)
 from routers.notifications_router import router as notifications_router  # noqa: E402
-from routers.templates_router import router as templates_router  # noqa: E402
-from routers.users_router import router as users_router  # noqa: E402
-from seed import ensure_seed  # noqa: E402
+from routers.templates_router import router as templates_router        # noqa: E402
+from routers.users_router import router as users_router                # noqa: E402
+from scripts.ensure_indexes import ensure_indexes                      # noqa: E402
+from seed import ensure_seed                                           # noqa: E402
+from token_refresh_job import TokenRefreshJob                          # noqa: E402
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 logger = logging.getLogger("haven")
+
+_token_refresh_job: TokenRefreshJob | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global _token_refresh_job
     logger.info("HAVEN backend starting up")
+
+    # ── 1. Seed demo data ────────────────────────────────────────────────────
     try:
         await ensure_seed()
         await ensure_default_integrations()
     except Exception as e:
-        logger.warning(f"Seed step had an issue (continuing): {e}")
+        logger.warning(f"Seed step issue (continuing): {e}")
+
+    # ── 2. Ensure MongoDB indexes (idempotent, background) ───────────────────
+    try:
+        await ensure_indexes(db)
+        logger.info("MongoDB indexes verified")
+    except Exception as e:
+        logger.warning(f"Index creation issue (non-fatal): {e}")
+
+    # ── 3. Start token auto-refresh background job (FedRAMP IA-5) ───────────
+    try:
+        _token_refresh_job = TokenRefreshJob(db)
+        await _token_refresh_job.start()
+        logger.info("Token refresh job started")
+    except Exception as e:
+        logger.warning(f"Token refresh job failed to start (non-fatal): {e}")
+
     yield
-    logger.info("HAVEN backend shutting down — closing browser sessions")
+
+    # ── Shutdown ─────────────────────────────────────────────────────────────
+    logger.info("HAVEN backend shutting down")
+    if _token_refresh_job:
+        await _token_refresh_job.stop()
     await close_all_sessions()
 
 
-app = FastAPI(title="HAVEN", description="Help has a home.", lifespan=lifespan)
+app = FastAPI(
+    title="HAVEN",
+    description="Help has a home. — Enterprise-Grade Civic Technology Platform",
+    version="4.1.0",
+    lifespan=lifespan,
+)
 
 api_router = APIRouter(prefix="/api")
 
-
+# ── Root ──────────────────────────────────────────────────────────────────────
 @api_router.get("/")
 async def root():
-    return {"name": "HAVEN", "tagline": "Help has a home.", "acronym": "Helping Agencies, Volunteers, and Everyone Navigate"}
+    return {
+        "name": "HAVEN",
+        "version": "4.1.0",
+        "tagline": "Help has a home.",
+        "acronym": "Helping Agencies, Volunteers, and Everyone Navigate",
+    }
 
 
-@api_router.get("/health")
-async def health():
-    return {"status": "ok", "service": "haven-backend"}
+# ── Health endpoints (SOC 2 A1.2 — Availability monitoring) ──────────────────
+
+@api_router.get("/health/live", tags=["health"])
+async def health_live():
+    """Kubernetes / Docker liveness probe. Returns 200 as long as the process
+    is running. Never checks dependencies — a slow DB must not kill the pod."""
+    return {"alive": True, "ts": time.time()}
 
 
-# Mount all routers
+@api_router.get("/health/ready", tags=["health"])
+async def health_ready():
+    """Readiness probe. Returns 200 only when DB is reachable.
+    Used by load balancers to stop routing traffic to an unready instance."""
+    try:
+        await db.command("ping")
+        db_ok = True
+        db_status = "connected"
+    except Exception as e:
+        db_ok = False
+        db_status = f"error: {e}"
+
+    status_code = 200 if db_ok else 503
+    return JSONResponse(
+        status_code=status_code,
+        content={"ready": db_ok, "db": db_status, "ts": time.time()},
+    )
+
+
+@api_router.get("/health", tags=["health"])
+async def health_full():
+    """Full health check — DB, Vault config, LLM engine, and index status.
+    Used for SOC 2 A1.2 continuous monitoring evidence.
+    Never exposes secrets; only reports configuration state.
+    """
+    # DB ping
+    try:
+        await db.command("ping")
+        db_ok, db_msg = True, "connected"
+    except Exception as e:
+        db_ok, db_msg = False, str(e)
+
+    # Vault config
+    vault_key_set = bool(os.environ.get("VAULT_MASTER_KEY"))
+    signed_url_key_set = bool(os.environ.get("SIGNED_URL_SECRET"))
+    vault_using_fallback = not vault_key_set and bool(os.environ.get("JWT_SECRET"))
+    vault_status = (
+        "configured"  if vault_key_set else
+        "fallback_jwt" if vault_using_fallback else
+        "NOT_CONFIGURED"
+    )
+
+    # LLM engine
+    ollama_url = os.environ.get("OLLAMA_URL", "http://ollama:11434")
+    emergent_key = bool(os.environ.get("EMERGENT_LLM_KEY"))
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=3) as client:
+            r = await client.get(f"{ollama_url}/api/tags")
+            llm_engine = "ollama_native" if r.status_code == 200 else "ollama_unreachable"
+    except Exception:
+        llm_engine = "emergent_llm_fallback" if emergent_key else "no_llm_available"
+
+    # Token refresh job
+    refresh_job_running = (
+        _token_refresh_job is not None and _token_refresh_job.is_running
+    )
+
+    overall = "ok" if db_ok else "degraded"
+
+    return {
+        "status": overall,
+        "version": "4.1.0",
+        "ts": time.time(),
+        "checks": {
+            "database":          {"ok": db_ok,            "detail": db_msg},
+            "vault":             {"ok": vault_key_set,    "detail": vault_status},
+            "signed_urls":       {"ok": signed_url_key_set, "detail": "configured" if signed_url_key_set else "using_jwt_fallback"},
+            "llm_engine":        {"ok": llm_engine != "no_llm_available", "detail": llm_engine},
+            "token_refresh_job": {"ok": refresh_job_running, "detail": "running" if refresh_job_running else "stopped"},
+        },
+    }
+
+
+# ── Mount all routers ─────────────────────────────────────────────────────────
 api_router.include_router(auth_router)
 api_router.include_router(users_router)
 api_router.include_router(cases_router)
@@ -85,7 +207,7 @@ api_router.include_router(case_packet_router)
 
 app.include_router(api_router)
 
-# CORS
+# ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -95,7 +217,7 @@ app.add_middleware(
 )
 
 
-# ===== Demo agency form HTML — used by BB browser-control demos =====
+# ── Demo housing form (BB browser-control showcase) ───────────────────────────
 DEMO_HOUSING_FORM = """<!doctype html>
 <html><head><meta charset='utf-8'><title>Section 8 Housing Application (Demo)</title>
 <style>

@@ -164,7 +164,7 @@ class SimulatedAdapter(AgencyAdapter):
 
 
 # ── Generic OAuth 2.0 adapter ─────────────────────────────────────────────────
-class OAuth2Adapter(AgencyAdapter):
+class OAuth2Adapter(RefreshCapableMixin, AgencyAdapter):
     @property
     def mode(self) -> str:
         return "live"
@@ -282,7 +282,7 @@ class OAuth2Adapter(AgencyAdapter):
 
 
 # ── Login.gov adapter (OIDC + PKCE mandatory) ─────────────────────────────────
-class LoginGovAdapter(OAuth2Adapter):
+class LoginGovAdapter(OAuth2Adapter):  # inherits RefreshCapableMixin via OAuth2Adapter
     @property
     def adapter_family(self) -> str:
         return "logingov"
@@ -314,7 +314,7 @@ class LoginGovAdapter(OAuth2Adapter):
 
 
 # ── VA Lighthouse adapter ─────────────────────────────────────────────────────
-class VaAdapter(OAuth2Adapter):
+class VaAdapter(OAuth2Adapter):  # inherits RefreshCapableMixin via OAuth2Adapter
     @property
     def adapter_family(self) -> str:
         return "va"
@@ -362,7 +362,7 @@ class VaAdapter(OAuth2Adapter):
 
 
 # ── SSA adapter ───────────────────────────────────────────────────────────────
-class SsaAdapter(OAuth2Adapter):
+class SsaAdapter(OAuth2Adapter):  # inherits RefreshCapableMixin via OAuth2Adapter
     @property
     def adapter_family(self) -> str:
         return "ssa"
@@ -381,6 +381,67 @@ class SsaAdapter(OAuth2Adapter):
     @property
     def scope(self) -> str:
         return self._env("OAUTH_SCOPE", self._sandbox("scope"))
+
+
+# ── Refresh token rotation ───────────────────────────────────────────────────
+
+class TokenRefreshError(Exception):
+    """Raised when a refresh attempt fails — caller should re-initiate OAuth flow."""
+
+
+class RefreshCapableMixin:
+    """Mixin that adds single-use refresh token rotation to OAuth2Adapter subclasses.
+
+    Guarantees (FedRAMP AC-2 / IA-5 token management):
+      - refresh_token is consumed exactly once per rotation.
+      - New token set is returned; old refresh_token is invalidated server-side.
+      - On failure (400/401 from token endpoint) raises TokenRefreshError so
+        callers know they must re-initiate the full OAuth flow.
+    """
+
+    async def refresh_tokens(self, refresh_token: str) -> dict:
+        """Exchange a refresh token for a new token set.
+        Returns the new token dict (access_token, refresh_token, expires_in, ...).
+        Raises TokenRefreshError if the server rejects the refresh.
+        """
+        if not getattr(self, "token_url", None):
+            raise TokenRefreshError(f"{self.code}: token URL not configured — cannot refresh")
+        if not refresh_token:
+            raise TokenRefreshError(f"{self.code}: no refresh token available — re-authorize")
+
+        data: dict = {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": getattr(self, "client_id", ""),
+        }
+        # Include client_secret only when present (PKCE flows omit it)
+        secret = getattr(self, "client_secret", "")
+        if secret:
+            data["client_secret"] = secret
+
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                r = await client.post(
+                    self.token_url,
+                    data=data,
+                    headers={"Accept": "application/json"},
+                )
+                if r.status_code in (400, 401):
+                    raise TokenRefreshError(
+                        f"{self.code}: refresh rejected (HTTP {r.status_code}) — "
+                        "old token invalidated, re-authorize required"
+                    )
+                r.raise_for_status()
+                result = r.json()
+        except TokenRefreshError:
+            raise
+        except Exception as exc:
+            raise TokenRefreshError(f"{self.code}: refresh request failed: {exc}") from exc
+
+        result["mode"] = "live"
+        result["adapter_family"] = getattr(self, "adapter_family", "oauth2")
+        result["refreshed_at"] = datetime.now(timezone.utc).isoformat()
+        return result
 
 
 # ── Factory helpers ───────────────────────────────────────────────────────────
