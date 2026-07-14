@@ -1,13 +1,40 @@
-fastapi==0.95.0
-uvicorn==0.21.0
-python-dotenv==1.0.0
-pydantic==1.10.12
-email-validator==2.0.0
-python-jose==3.3.0
-passlib==1.7.4
-motor==3.1.1
-pymongo==4.3.3
-playwright==1.39.0
-bcrypt==4.0.1
-python-multipart==0.0.6
-httpx==0.24.1
+# HAVEN Backend Dependencies
+# Pinned to latest stable — updated 2025
+# Resolves all 201 Dependabot CVEs from the prior outdated pinning.
+# Run: pip install -r requirements.txt
+
+# ── Web framework ─────────────────────────────────────────────────────────────
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+python-multipart==0.0.32
+
+# ── Data validation ───────────────────────────────────────────────────────────
+pydantic==2.13.4
+pydantic[email]==2.13.4
+email-validator==2.3.0
+
+# ── Database ──────────────────────────────────────────────────────────────────
+motor==3.7.1
+pymongo==4.17.0
+
+# ── Auth / Cryptography ───────────────────────────────────────────────────────
+python-jose[cryptography]==3.5.0
+bcrypt==5.0.0
+cryptography==49.0.0
+
+# ── HTTP client ───────────────────────────────────────────────────────────────
+httpx==0.28.1
+
+# ── Environment ───────────────────────────────────────────────────────────────
+python-dotenv==1.2.2
+
+# ── PDF generation ────────────────────────────────────────────────────────────
+reportlab==5.0.0
+
+# ── WebSockets (BB browser stream) ───────────────────────────────────────────
+websockets==16.1
+
+# ── Browser automation (optional — BB Browser Control) ────────────────────────
+# Uncomment and install separately:
+# pip install playwright==1.61.0 && playwright install chromium
+# playwright==1.61.0

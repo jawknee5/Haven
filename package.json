@@ -31,13 +31,13 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.4.0",
     "vite": "^7.3.3",
-    "vitest": "^0.34.0"
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "bullmq": "^5.7.0",
     "ioredis": "^5.4.1",
-    "jspdf": "^2.5.1",
+    "jspdf": "^4.2.1",
     "papaparse": "^5.4.1",
     "pg": "^8.20.0",
     "react": "^19.2.6",
