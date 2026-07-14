@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 const collectDefaultMetrics = promClient.collectDefaultMetrics;
-collectDefaultMetrics({ prefix: 'pathway_' });
+collectDefaultMetrics({ prefix: 'Haven_' });
 
 app.get('/metrics', async (req, res) => {
   res.set('Content-Type', promClient.register.contentType);
@@ -19,9 +19,9 @@ app.get('/metrics', async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => res.json({ 
-  status: 'Pathway 3.0 Operational', 
+  status: 'Haven Operational', 
   environment: process.env.NODE_ENV,
-  intelligence: 'Apex-Zerg' 
+  intelligence: 'BB' 
 }));
 
 const PORT = process.env.PORT || 3000;
