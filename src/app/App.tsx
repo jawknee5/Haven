@@ -22,7 +22,7 @@ const router = createBrowserRouter([
     path: '/',
     element: <AppShell />,
     children: [
-      { index: true, element: <ProtectedRoute element={<Dashboard />} /> },
+      { index: true, element: <Home /> },
       { path: 'dashboard', element: <ProtectedRoute element={<Dashboard />} /> },
       { path: 'navigation', element: <ProtectedRoute element={<HAVEN />} /> },
       { path: 'resources', element: <ProtectedRoute element={<Resources />} /> },
