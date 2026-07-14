@@ -1,8 +1,8 @@
 /**
- * Xortron-Apex Vault Integration for Pathway
+ * Apex Vault Integration for Pathway
  * Replaces basic prismaVault.ts with production-grade encryption
  * 
- * This module integrates Xortron-Apex into Pathway's case management system,
+ * This module integrates Apex_Vault into Havens's case management system,
  * encrypting all sensitive PII at rest with government-grade AES-256-GCM.
  */
 
@@ -40,10 +40,10 @@ export interface VaultResult<T> {
 }
 
 // ============================================================================
-// XORTRON VAULT - PRODUCTION GRADE
+// APEX VAULT - PRODUCTION GRADE
 // ============================================================================
 
-export class XortronVault {
+export class Apex_Vault {
   private readonly ALGORITHM = 'aes-256-gcm';
   private readonly IV_LENGTH = 12;
   private readonly AUTH_TAG_LENGTH = 16;
@@ -112,7 +112,7 @@ export class XortronVault {
         timestamp: new Date().toISOString(),
       };
 
-      // Serialize to hex string (compatible with Pathway's storage)
+      // Serialize to hex string (compatible with Haven's storage)
       const serialized = this.serializeEnvelope(envelope);
 
       this.logAudit('ENCRYPTION_SUCCESS', {
@@ -291,7 +291,7 @@ export class XortronVault {
       component: 'XortronVault',
       ...context,
     };
-    console.log(`[XORTRON-AUDIT] ${JSON.stringify(auditEntry)}`);
+    console.log(`[APEX-AUDIT] ${JSON.stringify(auditEntry)}`);
   }
 }
 
@@ -299,15 +299,15 @@ export class XortronVault {
 // SINGLETON INSTANCE
 // ============================================================================
 
-const masterKey = process.env.VAULT_KEY || process.env.XORTRON_MASTER_KEY;
+const masterKey = process.env.VAULT_KEY || process.env.APEX_MASTER_KEY;
 
 if (!masterKey) {
   throw new Error(
-    'VAULT_KEY or XORTRON_MASTER_KEY environment variable is required. Generate with: openssl rand -hex 32'
+    'VAULT_KEY or APEX_MASTER_KEY environment variable is required. Generate with: openssl rand -hex 32'
   );
 }
 
-export const xortronVault = new XortronVault(masterKey);
+export const apexVault = new ApexVault(masterKey);
 
 // ============================================================================
 // BACKWARDS-COMPATIBLE EXPORTS (Drop-in replacement for prismaVault)
@@ -317,7 +317,7 @@ export const xortronVault = new XortronVault(masterKey);
  * Drop-in replacement for old encrypt function
  */
 export const encrypt = (text: string): string => {
-  const result = xortronVault.protect(text);
+  const result = apexVault.protect(text);
   if (!result.success) {
     throw new Error(result.error || 'Encryption failed');
   }
@@ -335,7 +335,7 @@ export const decrypt = (hash: string): string => {
 
   // Attempt modern envelope decryption
   try {
-    const result = xortronVault.reveal(hash);
+    const result = apexVault.reveal(hash);
     if (result.success) {
       return result.data!;
     }
@@ -346,4 +346,4 @@ export const decrypt = (hash: string): string => {
   }
 };
 
-export default xortronVault;
+export default apexVault;
