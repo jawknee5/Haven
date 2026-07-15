@@ -6,7 +6,7 @@ import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Admin from './pages/Admin';
 import BbChat from './pages/BbChat';
-import HAVEN from './pages/HAVEN/HAVEN';
+import HAVEN from './pages/NavigationHub/NavigationHub';
 import Resources from './pages/Resources/Resources';
 import Tools from './pages/Tools/Tools';
 import Pack from './pages/Pack/Pack';

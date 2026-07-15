@@ -104,10 +104,36 @@
     }
 
     @keyframes text-fade-in-out {
-      0% { opacity: 0; }
-      20% { opacity: 1; animation: glow-pulse 2s ease-in-out infinite; }
-      70% { opacity: 1; animation: glow-pulse 2s ease-in-out infinite; }
-      100% { opacity: 0; }
+      0% { 
+        opacity: 0;
+        text-shadow: 0 0 20px rgba(212, 175, 55, 0.6), 
+                     0 0 40px rgba(212, 175, 55, 0.3),
+                     0 0 60px rgba(212, 175, 55, 0.2);
+      }
+      20% { 
+        opacity: 1;
+        text-shadow: 0 0 30px rgba(212, 175, 55, 0.8),
+                     0 0 60px rgba(212, 175, 55, 0.5),
+                     0 0 80px rgba(212, 175, 55, 0.2);
+      }
+      50% { 
+        opacity: 1;
+        text-shadow: 0 0 20px rgba(212, 175, 55, 0.6), 
+                     0 0 40px rgba(212, 175, 55, 0.3),
+                     0 0 60px rgba(212, 175, 55, 0.2);
+      }
+      70% { 
+        opacity: 1;
+        text-shadow: 0 0 30px rgba(212, 175, 55, 0.8),
+                     0 0 60px rgba(212, 175, 55, 0.5),
+                     0 0 80px rgba(212, 175, 55, 0.2);
+      }
+      100% { 
+        opacity: 0;
+        text-shadow: 0 0 20px rgba(212, 175, 55, 0.6), 
+                     0 0 40px rgba(212, 175, 55, 0.3),
+                     0 0 60px rgba(212, 175, 55, 0.2);
+      }
     }
 
     @keyframes logo-fade-in {
