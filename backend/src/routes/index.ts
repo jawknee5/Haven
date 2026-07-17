@@ -3,6 +3,7 @@ import { router, publicProcedure, protectedProcedure, caseworkerProcedure } from
 import { enrichCaseEngine } from '../engines/enrichment';
 import { routeCaseEngine } from '../engines/routing';
 import { assessRiskEngine } from '../engines/risk';
+import { bookingRouter } from './booking';
 
 // ============================================
 // TASK ENGINE SCHEMA & VALIDATORS
@@ -481,6 +482,7 @@ export const appRouter = router({
   risk: riskRouter,
   resource: resourceRouter,
   alert: alertRouter,
+  booking: bookingRouter,
 });
 
 export type AppRouter = typeof appRouter;

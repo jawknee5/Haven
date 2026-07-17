@@ -15,7 +15,16 @@ import CaseDetailPage from "@/pages/CaseDetailPage";
 import FormBuilderPage from "@/pages/FormBuilderPage";
 import BBBrowserControlPage from "@/pages/BBBrowserControlPage";
 import ResidentDashboard from "@/pages/ResidentDashboard";
+import ResidentDocumentsPage from "@/pages/ResidentDocumentsPage";
+import ResidentTasksPage from "@/pages/ResidentTasksPage";
+import SurvivalBiblePage from "@/pages/SurvivalBiblePage";
+import MessagesPage from "@/pages/MessagesPage";
+import ApplicationsPage from "@/pages/ApplicationsPage";
+import IntegrationsPage from "@/pages/IntegrationsPage";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminAuditPage from "@/pages/AdminAuditPage";
+import AdminUsersPage from "@/pages/AdminUsersPage";
+import ArchitectDashboard from "@/pages/ArchitectDashboard";
 
 import "@/App.css";
 
@@ -57,12 +66,23 @@ export default function App() {
             <Route path="/app" element={<RoleHome />} />
 
             <Route path="/caseworker" element={<Protected roles={["caseworker", "admin"]}><CaseworkerDashboard /></Protected>} />
+            <Route path="/caseworker/cases" element={<Protected roles={["caseworker", "admin"]}><CaseworkerDashboard /></Protected>} />
             <Route path="/caseworker/cases/:id" element={<Protected roles={["caseworker", "admin"]}><CaseDetailPage /></Protected>} />
             <Route path="/caseworker/forms" element={<Protected roles={["caseworker", "admin"]}><FormBuilderPage /></Protected>} />
             <Route path="/caseworker/bb-browser" element={<Protected roles={["caseworker", "admin"]}><BBBrowserControlPage /></Protected>} />
+            <Route path="/caseworker/integrations" element={<Protected roles={["caseworker", "admin"]}><IntegrationsPage /></Protected>} />
+            <Route path="/survival-bible" element={<Protected roles={["caseworker", "admin", "resident"]}><SurvivalBiblePage /></Protected>} />
 
             <Route path="/resident" element={<Protected roles={["resident"]}><ResidentDashboard /></Protected>} />
+            <Route path="/resident/documents" element={<Protected roles={["resident"]}><ResidentDocumentsPage /></Protected>} />
+            <Route path="/resident/tasks" element={<Protected roles={["resident"]}><ResidentTasksPage /></Protected>} />
+            <Route path="/resident/messages" element={<Protected roles={["resident"]}><MessagesPage /></Protected>} />
+            <Route path="/resident/applications" element={<Protected roles={["resident"]}><ApplicationsPage /></Protected>} />
+
             <Route path="/admin" element={<Protected roles={["admin"]}><AdminDashboard /></Protected>} />
+            <Route path="/admin/audit" element={<Protected roles={["admin"]}><AdminAuditPage /></Protected>} />
+            <Route path="/admin/users" element={<Protected roles={["admin"]}><AdminUsersPage /></Protected>} />
+            <Route path="/architect" element={<Protected roles={["admin"]}><ArchitectDashboard /></Protected>} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

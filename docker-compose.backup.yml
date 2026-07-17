@@ -1,0 +1,113 @@
+# ============================================================================
+# HAVEN — Docker backup boot stack
+# ============================================================================
+# This file is a self-contained, non-conflicting backup deployment option.
+# It runs on alternate ports and isolated container/network names so it can
+# coexist with any Emergents production deployment or the default
+# docker-compose.yml stack (use `docker compose -f docker-compose.backup.yml up`).
+#
+# Ports used:
+#   - Backup nginx: 8080 (HTTP) / 8443 (HTTPS)
+#   - Backup frontend: exposed on 3001 internally
+#   - Backup backend: exposed on 8001 internally
+#   - Backup mongo: exposed on 27018 internally
+#
+# This avoids conflicts with the main stack which uses 80/443/3000/8000/27017.
+# ============================================================================
+
+services:
+  haven-backup-nginx:
+    image: nginx:1.27-alpine
+    container_name: haven-backup-nginx
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - ./nginx.backup.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - haven-backup-frontend
+      - haven-backup-backend
+    restart: unless-stopped
+    networks:
+      - haven-backup-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  haven-backup-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        - VITE_API_URL=/api
+    container_name: haven-backup-frontend
+    expose:
+      - "3000"
+    restart: unless-stopped
+    networks:
+      - haven-backup-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  haven-backup-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: haven-backup-backend
+    expose:
+      - "8000"
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - VAULT_KEY=${VAULT_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - EMERGENT_LLM_KEY=${EMERGENT_LLM_KEY:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8080,https://localhost:8443}
+    depends_on:
+      haven-backup-mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - haven-backup-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  haven-backup-mongo:
+    image: mongo:7.0
+    container_name: haven-backup-mongo
+    expose:
+      - "27017"
+    environment:
+      - MONGO_INITDB_DATABASE=haven
+    restart: unless-stopped
+    networks:
+      - haven-backup-net
+    volumes:
+      - haven-backup-mongo-data:/data/db
+    command: mongod --wiredTigerCacheSizeGB 1
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+networks:
+  haven-backup-net:
+    name: haven-backup-net
+    driver: bridge
+
+volumes:
+  haven-backup-mongo-data:

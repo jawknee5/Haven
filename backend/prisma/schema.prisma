@@ -390,3 +390,56 @@ model OmegisAuditLog {
   @@index([createdAt])
 }
 
+// ============================================================================
+// BOOKING & ZOOM MEETING MODELS
+// ============================================================================
+
+model ZoomMeeting {
+  id              String    @id @default(cuid())
+  meetingId       String    @unique
+  hostName        String
+  hostEmail       String
+  joinUrl         String
+  startUrl        String?
+  password        String?
+  capacity        Int       @default(300)
+  isActive        Boolean   @default(true)
+  
+  bookings        Booking[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([isActive])
+  @@index([hostEmail])
+}
+
+model Booking {
+  id              String    @id @default(cuid())
+  userEmail       String
+  userName        String?
+  userRole        String    // resident, caseworker, admin, agency-partner
+  bookingPurpose  String    // product-demo, speak-caseworker, intake, training, integration
+  selectedAgency  String?   // agency code if applicable
+  caseworkerId    String?   // caseworker ID if assigned
+  caseworkerName  String?   // caseworker name for reference
+  
+  zoomMeetingId   String?
+  zoomMeeting     ZoomMeeting? @relation(fields: [zoomMeetingId], references: [id], onDelete: SetNull)
+  
+  joinUrl         String?
+  scheduledAt     DateTime?
+  joinedAt        DateTime?
+  duration        Int?      // seconds
+  
+  status          String    @default("pending") // pending, scheduled, joined, completed, cancelled
+  notes           String?   @db.LongText
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userEmail])
+  @@index([status])
+  @@index([bookingPurpose])
+  @@index([createdAt])
+}
+
