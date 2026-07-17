@@ -21,7 +21,8 @@ export default function AdminAuditPage() {
     const s = await api.get("/admin/audit/stats");
     setStats(s.data);
   }
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, []);
 
   return (
     <AppLayout title="Audit Log" subtitle="Every privileged action recorded — searchable and exportable.">

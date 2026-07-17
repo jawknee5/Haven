@@ -46,7 +46,6 @@ export default function ArchitectDashboard() {
     loadAll();
     const t = setInterval(loadAll, 15000); // refresh every 15s for a "live" feel
     return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function runEngineTest() {

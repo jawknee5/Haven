@@ -20,7 +20,7 @@ export interface EmailConfig {
 }
 
 class EmailService {
-  private apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  private apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
   /**
    * Get available email services

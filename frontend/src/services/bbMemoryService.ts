@@ -18,7 +18,7 @@ export interface BBMessage {
 }
 
 class BBMemoryService {
-  private apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  private apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
   /**
    * Initialize or get current session

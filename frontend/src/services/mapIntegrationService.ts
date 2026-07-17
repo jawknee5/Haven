@@ -47,8 +47,8 @@ export interface MapResource {
 }
 
 class MapIntegrationService {
-  private apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-  private wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:3000';
+  private apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  private wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
   private transitSubscriptions = new Map<string, WebSocket>();
 
   /**

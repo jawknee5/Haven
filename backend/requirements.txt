@@ -18,7 +18,8 @@ motor==3.7.1
 pymongo==4.17.0
 
 # ── Auth / Cryptography ───────────────────────────────────────────────────────
-python-jose[cryptography]==3.5.0
+# PyJWT replaces python-jose to avoid the ecdsa JWT vulnerability (CVE-2024-33663 / GHSA-9jmh-6cv8-gg9g).
+pyjwt==2.10.1
 bcrypt==5.0.0
 cryptography==49.0.0
 

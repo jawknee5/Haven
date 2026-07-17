@@ -32,7 +32,8 @@ export default function AdminUsersPage() {
     }
   }
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, []);
 
   async function handleCreate(e) {
     e.preventDefault();

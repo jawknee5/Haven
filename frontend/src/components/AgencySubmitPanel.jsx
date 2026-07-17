@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { Layers, Send, Loader2, ChevronDown, CheckCircle2, AlertTriangle } from "lucide-react";
@@ -14,16 +14,16 @@ export default function AgencySubmitPanel({ caseData }) {
   const [busy, setBusy] = useState(false);
   const [payload, setPayload] = useState({});
 
-  useEffect(() => {
-    api.get("/integrations").then((r) => setIntegrations((r.data || []).filter((i) => i.connected)));
-    refreshSubs();
-  }, [caseData?.id]);
-
-  async function refreshSubs() {
+  const refreshSubs = useCallback(async () => {
     if (!caseData?.id) return;
     const r = await api.get(`/integrations/submissions?case_id=${caseData.id}`);
     setSubmissions(r.data || []);
-  }
+  }, [caseData?.id]);
+
+  useEffect(() => {
+    api.get("/integrations").then((r) => setIntegrations((r.data || []).filter((i) => i.connected)));
+    refreshSubs();
+  }, [caseData?.id, refreshSubs]);
 
   function autoFillFromCase(integ) {
     const intake = caseData?.intake_data || {};
