@@ -69,7 +69,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - VAULT_KEY=${VAULT_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - EMERGENT_LLM_KEY=${EMERGENT_LLM_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8080,https://localhost:8443}
     depends_on:
       haven-backup-mongo:

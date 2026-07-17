@@ -1,12 +1,8 @@
 // backend/src/services/bbChatEngine.ts
-import OpenAI from 'openai';
+import { ollamaChat } from '../lib/ollamaClient';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export interface BBMessage {
   role: 'user' | 'assistant' | 'system';
@@ -90,18 +86,13 @@ export async function generateBBResponse(
       contextMessage += `\n[Context: I can see the user's screen, which shows a form with ${context.screenElements.length} fields]`;
     }
 
-    // Call OpenAI API
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        { role: 'system', content: BB_SYSTEM_PROMPT + contextMessage },
-        ...messages.map(m => ({ role: m.role as any, content: m.content })),
-      ],
-      temperature: 0.7,
-      max_tokens: 500,
-    });
+    // Call local Ollama API
+    const ollamaMessages = [
+      { role: 'system' as const, content: BB_SYSTEM_PROMPT + contextMessage },
+      ...messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+    ];
 
-    const bbResponse = response.choices[0].message.content || 'I apologize, I encountered an error processing your message.';
+    const bbResponse = await ollamaChat(ollamaMessages, { temperature: 0.7, num_predict: 500 });
 
     console.log(`[BB] Response generated: ${bbResponse.substring(0, 100)}...`);
 

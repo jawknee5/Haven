@@ -1,12 +1,8 @@
 import { prisma } from '../utils/prismaVault';
-import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import { ollamaPrompt } from '../lib/ollamaClient';
 
 dotenv.config();
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export const assessRiskEngine = async (userId: string, prismaClient: any) => {
   console.log(`[RISK] Initiating Risk Assessment for User: ${userId}`);
@@ -51,13 +47,13 @@ export const assessRiskEngine = async (userId: string, prismaClient: any) => {
       }
     `;
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'gpt-3.5-turbo',
-      response_format: { type: 'json_object' },
-    });
+    const completion = await ollamaPrompt(
+      'You are a helpful assistant that only responds in valid JSON.',
+      prompt,
+      { temperature: 0.3, num_predict: 512 }
+    );
 
-    const assessment = JSON.parse(completion.choices[0].message.content || '{}');
+    const assessment = JSON.parse(completion || '{}');
 
     // Store assessment in database
     if (recentCases[0]) {

@@ -52,7 +52,7 @@ services:
       - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434}
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
       - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-90}
-      - EMERGENT_LLM_KEY=${EMERGENT_LLM_KEY:-}       # leave blank to disable Sonnet charges
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}            # optional free-tier fallback
       - CORS_ORIGINS=${CORS_ORIGINS:-https://homeishaven.cloud,https://www.homeishaven.cloud}
       - JWT_SECRET=${JWT_SECRET:-change_me_run_openssl_rand_hex_32}
       - ENVIRONMENT=production

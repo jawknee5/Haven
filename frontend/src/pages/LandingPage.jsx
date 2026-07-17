@@ -186,7 +186,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium">BB</p>
-                  <p className="text-[11px] text-[#6d7a9a]">Claude Sonnet 4.5 · Civic Support</p>
+                  <p className="text-[11px] text-[#6d7a9a]">Local Ollama AI · Civic Support</p>
                 </div>
               </div>
               <div className="space-y-3 text-sm">

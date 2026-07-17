@@ -1,11 +1,12 @@
 """BB router — chat, form analysis, autofill, browser control, application tracking.
 
 This is the heart of HAVEN's AI showcase. BB combines:
-1. Claude Sonnet 4.5 powered conversation (via Emergent Universal Key)
-2. Form field detection & semantic autofill
-3. Live headless browser automation (Playwright)
-4. Application tracking across agencies
-5. Crisis detection
+1. Local Ollama powered conversation (free, private)
+2. Optional Gemini free-tier fallback when Ollama is unavailable
+3. Form field detection & semantic autofill
+4. Live headless browser automation (Playwright)
+5. Application tracking across agencies
+6. Crisis detection
 """
 from __future__ import annotations
 

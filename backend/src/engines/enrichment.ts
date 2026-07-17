@@ -1,14 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import { ollamaPrompt } from '../lib/ollamaClient';
 import { decrypt } from '../utils/ApexVault';
 
 dotenv.config();
 
 const prisma = new PrismaClient();
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export const enrichCaseEngine = async (caseId: string, prismaClient: any) => {
   console.log(`[OTEE] Initiating Neural Analysis for Case: ${caseId}`);
@@ -39,13 +36,13 @@ export const enrichCaseEngine = async (caseId: string, prismaClient: any) => {
       }
     `;
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'gpt-3.5-turbo',
-      response_format: { type: 'json_object' },
-    });
+    const completion = await ollamaPrompt(
+      'You are a helpful assistant that only responds in valid JSON.',
+      prompt,
+      { temperature: 0.3, num_predict: 256 }
+    );
 
-    const aiResponse = JSON.parse(completion.choices[0].message.content || '{}');
+    const aiResponse = JSON.parse(completion || '{}');
 
     const updatedCase = await prismaClient.case.update({
       where: { id: caseId },

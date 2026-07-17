@@ -80,7 +80,7 @@ export default function BBChat({ sessionId, contextLabel, defaultMessages, onClo
           <div>
             <p className="text-sm font-medium">BB</p>
             <p className="text-[11px] text-[#aab5cf] flex items-center gap-1">
-              <Sparkles size={10} /> Claude Sonnet 4.5 · {contextLabel || "Civic Support"}
+              <Sparkles size={10} /> BB · Local AI · {contextLabel || "Civic Support"}
             </p>
           </div>
         </div>

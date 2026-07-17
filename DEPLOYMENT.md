@@ -74,8 +74,8 @@ NODE_ENV=production
 DATABASE_URL="mongodb+srv://..."
 JWT_SECRET="change_me"
 VAULT_KEY="change_me"
-OPENAI_API_KEY="sk-..."
-EMERGENT_LLM_KEY=""
+# Optional free-tier cloud fallback when Ollama is unavailable
+GEMINI_API_KEY=""
 CORS_ORIGINS="https://homeishaven.cloud,https://www.homeishaven.cloud"
 ```
 

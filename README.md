@@ -87,7 +87,7 @@ curl http://localhost/api/health
 BB runs on a local Ollama instance (llama3.2:3b) with no external API costs.
 The model (~2GB) is pulled automatically on first start.
 
-To enable the Claude Sonnet fallback, set `EMERGENT_LLM_KEY` in `.env`.
+BB runs on local Ollama by default. To enable the optional Gemini free-tier fallback for chat/vision, set `GEMINI_API_KEY` in `.env`.
 Leave it blank to keep everything local and free.
 
 ---

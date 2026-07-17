@@ -1,4 +1,4 @@
-"""BB's AI brain — primary: local Ollama (free); fallback: Emergent/Claude (optional).
+"""BB's AI brain — primary: local Ollama (free); fallback: Gemini free tier (optional).
 
 BB is HAVEN's intelligent civic-support assistant. She is empathetic, decisive,
 context-aware, and capable of analyzing forms, suggesting autofills, detecting
@@ -16,8 +16,7 @@ import httpx
 
 logger = logging.getLogger("haven.bb")
 
-EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
-DEFAULT_MODEL = ("anthropic", "claude-sonnet-4-5-20250929")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 # ── Ollama config (primary — local, free) ──────────────────────────────────
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://ollama:11434")
@@ -105,17 +104,14 @@ async def _ollama_chat(session_id: str, system: str, user_message: str) -> str:
     return reply
 
 
-async def _emergent_chat(session_id: str, system: str, user_message: str) -> str:
-    """Fallback: Emergent Universal LLM key (Claude Sonnet). Only used if Ollama is down."""
-    from emergentintegrations.llm.chat import LlmChat, UserMessage  # lazy import
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=session_id,
-        system_message=system,
-    ).with_model(*DEFAULT_MODEL)
-    msg = UserMessage(text=user_message)
-    response = await chat.send_message(msg)
-    return str(response)
+async def _gemini_chat(session_id: str, system: str, user_message: str) -> str:
+    """Fallback: Gemini free tier. Only used if Ollama is down and GEMINI_API_KEY is set."""
+    from gemini_client import gemini_chat_history  # lazy import
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user_message},
+    ]
+    return await gemini_chat_history(messages)
 
 
 async def bb_chat(
@@ -124,7 +120,7 @@ async def bb_chat(
     role: str = "resident",
     context: Optional[dict] = None,
 ) -> str:
-    """Send a message to BB. Tries Ollama first (free), falls back to Emergent LLM key."""
+    """Send a message to BB. Tries Ollama first (free), falls back to Gemini free tier."""
     system = _build_role_system(role, context)
 
     # 1) Try Ollama (local, no credits)
@@ -133,12 +129,12 @@ async def bb_chat(
     except Exception as e:
         logger.info(f"Ollama unavailable, falling back: {e}")
 
-    # 2) Optional Emergent/Claude fallback (only if key is set)
-    if EMERGENT_LLM_KEY:
+    # 2) Optional Gemini free-tier fallback (only if key is set)
+    if GEMINI_API_KEY:
         try:
-            return await _emergent_chat(session_id, system, user_message)
+            return await _gemini_chat(session_id, system, user_message)
         except Exception as e:
-            logger.warning(f"Emergent LLM also failed: {e}")
+            logger.warning(f"Gemini fallback also failed: {e}")
             return _fallback_response(user_message, role, error=str(e))
 
     return _fallback_response(user_message, role)

@@ -1,7 +1,10 @@
 """HAVEN Universal Document Scanner — OCR + AI classification + auto-file.
 
-Pipeline: upload (image/PDF) -> render to image -> GPT-4o vision (OCR + classify)
+Pipeline: upload (image/PDF) -> render to image -> Gemini 1.5 Flash (OCR + classify)
 -> Apex Vault encrypt extracted PII -> auto-file into the Document Locker.
+
+Primary AI remains local Ollama where applicable. Gemini free tier is used for
+vision/document workloads when a local vision model is not configured.
 """
 from __future__ import annotations
 import base64
@@ -10,12 +13,12 @@ import logging
 import os
 import uuid
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+from gemini_client import gemini_chat
 
 logger = logging.getLogger("haven.scanner")
 
-EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
-SCANNER_MODEL = ("openai", "gpt-4o")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+SCANNER_MODEL_DISPLAY = "gemini-1.5-flash-latest"
 
 CATEGORIES = [
     "identity",          # driver's license, state ID, passport
@@ -97,9 +100,9 @@ def pdf_to_image_b64(pdf_bytes: bytes) -> str:
 
 
 async def scan_document(content: bytes, content_type: str, filename: str = "") -> dict:
-    """Send document (image/PDF via vision, or txt/docx/doc as text) to GPT-4o; return classification dict."""
-    if not EMERGENT_LLM_KEY:
-        raise RuntimeError("EMERGENT_LLM_KEY not configured")
+    """Send document (image/PDF via vision, or txt/docx/doc as text) to Gemini; return classification dict."""
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY not configured")
 
     ext = (filename or "").lower().rsplit(".", 1)[-1] if "." in (filename or "") else ""
     text_content = None
@@ -110,23 +113,18 @@ async def scan_document(content: bytes, content_type: str, filename: str = "") -
     elif ext == "doc" or content_type == "application/msword":
         text_content = extract_doc_text(content)
 
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"scanner-{uuid.uuid4().hex[:12]}",
-        system_message=SYSTEM_PROMPT,
-    ).with_model(*SCANNER_MODEL)
+    chat = lambda system, user, image=None: gemini_chat(system, user, json_mode=True, image_base64=image)
 
     if text_content is not None:
         if not text_content.strip():
             raise ValueError("This file appears to be empty")
-        msg = UserMessage(text=USER_PROMPT + "\n\n" + TEXT_PROMPT_TEMPLATE.format(text=text_content[:30000]))
+        raw = await chat(SYSTEM_PROMPT, USER_PROMPT + "\n\n" + TEXT_PROMPT_TEMPLATE.format(text=text_content[:30000]))
     else:
         if content_type == "application/pdf":
             image_b64 = pdf_to_image_b64(content)
         else:
             image_b64 = base64.b64encode(content).decode("ascii")
-        msg = UserMessage(text=USER_PROMPT, file_contents=[ImageContent(image_base64=image_b64)])
-    raw = await chat.send_message(msg)
+        raw = await chat(SYSTEM_PROMPT, USER_PROMPT, image_base64=image_b64)
     text = str(raw).strip()
     if text.startswith("```"):
         text = text.strip("`")

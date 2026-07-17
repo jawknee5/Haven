@@ -160,14 +160,14 @@ async def health_full():
 
     # LLM engine
     ollama_url = os.environ.get("OLLAMA_URL", "http://ollama:11434")
-    emergent_key = bool(os.environ.get("EMERGENT_LLM_KEY"))
+    gemini_key = bool(os.environ.get("GEMINI_API_KEY"))
     try:
         import httpx
         async with httpx.AsyncClient(timeout=3) as client:
             r = await client.get(f"{ollama_url}/api/tags")
             llm_engine = "ollama_native" if r.status_code == 200 else "ollama_unreachable"
     except Exception:
-        llm_engine = "emergent_llm_fallback" if emergent_key else "no_llm_available"
+        llm_engine = "gemini_fallback" if gemini_key else "no_llm_available"
 
     # Token refresh job
     refresh_job_running = (

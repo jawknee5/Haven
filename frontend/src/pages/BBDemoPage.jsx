@@ -280,7 +280,7 @@ export default function BBDemoPage() {
             <div className="flex-1 min-w-0">
               <p className="text-xs text-[#aab5cf] flex items-center gap-2">
                 <Sparkles size={11} className="text-[#d4af37]" />
-                BB · Claude Sonnet 4.5 · <span className="text-[#f1d36b]">{phaseLabel}</span>
+                BB · Local Ollama AI · <span className="text-[#f1d36b]">{phaseLabel}</span>
               </p>
             </div>
             <p className="font-mono text-xs text-[#6d7a9a]">{(t / 1000).toFixed(1)}s / 60s</p>
@@ -486,7 +486,7 @@ export default function BBDemoPage() {
                 <BBAvatar size={26} />
                 <div>
                   <p className="text-sm font-medium">BB</p>
-                  <p className="text-[10px] text-[#6d7a9a]">Claude Sonnet 4.5 · Live</p>
+                  <p className="text-[10px] text-[#6d7a9a]">Local Ollama AI · Live</p>
                 </div>
               </div>
               <div className="space-y-3 text-sm">

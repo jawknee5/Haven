@@ -53,7 +53,7 @@ export default function AdminDashboard() {
               </div>
               <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
                 <p className="text-[10px] uppercase tracking-wider text-emerald-300">BB AI</p>
-                <p className="text-sm font-medium mt-1">Claude Sonnet 4.5 active</p>
+                <p className="text-sm font-medium mt-1">BB · Local Ollama AI</p>
               </div>
               <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
                 <p className="text-[10px] uppercase tracking-wider text-emerald-300">Browser Engine</p>
