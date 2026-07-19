@@ -151,7 +151,7 @@ export class ResourceOrchestrator {
     // Trip circuit if threshold exceeded
     if (currentCount >= this.config.failureThreshold) {
       await this.setCircuitState(resourceName, CircuitState.OPEN);
-      logger.critical(`[ORCHESTRATOR] Circuit TRIPPED for ${resourceName}`, {
+      logger.error(`[ORCHESTRATOR] Circuit TRIPPED for ${resourceName}`, {
         resourceName,
         failureCount: currentCount,
       });

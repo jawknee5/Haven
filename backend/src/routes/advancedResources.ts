@@ -22,13 +22,13 @@ router.get('/veterinary', async (req, res) => {
 });
 
 router.post('/:id/bookmark', authenticate, async (req, res) => {
-  await AdvancedResourceService.bookmarkResource(req.user?.userId || '', req.params.id);
+  await AdvancedResourceService.bookmarkResource(req.user?.userId || '', String(req.params.id || ''));
   res.json({ success: true });
 });
 
 router.post('/:id/rate', authenticate, async (req, res) => {
   const { rating } = req.body;
-  await AdvancedResourceService.rateResource(req.user?.userId || '', req.params.id, rating);
+  await AdvancedResourceService.rateResource(req.user?.userId || '', String(req.params.id || ''), rating);
   res.json({ success: true });
 });
 

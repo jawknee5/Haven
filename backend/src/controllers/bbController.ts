@@ -188,7 +188,7 @@ export async function bbTrackApplication(req: Request, res: Response) {
  */
 export async function bbCheckApplicationStatus(req: Request, res: Response) {
   try {
-    const { trackingId } = req.params;
+    const trackingId = String(req.params.trackingId || '');
 
     const tracking = await prisma.applicationTracking.findUnique({
       where: { id: trackingId },
@@ -216,7 +216,7 @@ export async function bbCheckApplicationStatus(req: Request, res: Response) {
  */
 export async function bbApplicationsSummary(req: Request, res: Response) {
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId || '');
 
     const summary = await generateApplicationSummary(userId, prisma);
     const suggestions = await suggestProcessOptimizations('', userId, prisma);

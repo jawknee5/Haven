@@ -25,7 +25,7 @@ export const getResources = async (req: Request, res: Response) => {
 export const routeCase = async (req: Request, res: Response) => {
   const id = req.params.id as string;
   try {
-    const result = await routeCaseEngine(id);
+    const result = await routeCaseEngine(id, prisma);
     res.json(result);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -35,7 +35,7 @@ export const routeCase = async (req: Request, res: Response) => {
 export const enrichCase = async (req: Request, res: Response) => {
   const id = req.params.id as string;
   try {
-    const result = await enrichCaseEngine(id);
+    const result = await enrichCaseEngine(id, prisma);
     res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

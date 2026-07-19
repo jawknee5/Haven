@@ -1,5 +1,6 @@
 // backend/src/services/bbChatEngine.ts
 import { ollamaChat } from '../lib/ollamaClient';
+import { geminiChat } from '../lib/geminiClient';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -86,13 +87,21 @@ export async function generateBBResponse(
       contextMessage += `\n[Context: I can see the user's screen, which shows a form with ${context.screenElements.length} fields]`;
     }
 
-    // Call local Ollama API
-    const ollamaMessages = [
+    const llmMessages = [
       { role: 'system' as const, content: BB_SYSTEM_PROMPT + contextMessage },
       ...messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
     ];
 
-    const bbResponse = await ollamaChat(ollamaMessages, { temperature: 0.7, num_predict: 500 });
+    // Primary: Gemini. Fallback: Ollama.
+    let bbResponse: string;
+    try {
+      bbResponse = await geminiChat(llmMessages, { temperature: 0.7, maxOutputTokens: 700 });
+      console.log('[BB] LLM provider: Gemini (primary)');
+    } catch (geminiError: any) {
+      console.warn(`[BB] Gemini failed, using Ollama fallback: ${geminiError?.message || geminiError}`);
+      bbResponse = await ollamaChat(llmMessages, { temperature: 0.7, num_predict: 500 });
+      console.log('[BB] LLM provider: Ollama (fallback)');
+    }
 
     console.log(`[BB] Response generated: ${bbResponse.substring(0, 100)}...`);
 

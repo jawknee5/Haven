@@ -48,7 +48,7 @@ export async function analyzeFormHTML(formHTML: string): Promise<FormAnalysis> {
       };
 
       // For select fields, extract options
-      if (element.tagName === 'select') {
+      if ('tagName' in element && element.tagName === 'select') {
         field.options = $el.find('option').map((_, opt) => $(opt).text()).get();
       }
 
@@ -174,7 +174,7 @@ export async function storeFormSubmission(
 export async function generateSignatureVerification(
   formData: Record<string, any>,
   userId: string
-) {git 
+) {
   const crypto = require('crypto');
 
   const formHash = crypto

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { reliabilityEngine } from '../services/ReliabilityEngine';
 
 dotenv.config();
 
@@ -29,19 +30,33 @@ export async function ollamaChat(
   const url = `${OLLAMA_URL}/api/chat`;
 
   try {
-    const response = await axios.post(
-      url,
+    const response = await reliabilityEngine.execute<any>(
+      'ollama.chat',
+      () =>
+        axios.post(
+          url,
+          {
+            model: OLLAMA_MODEL,
+            messages,
+            stream: false,
+            options: {
+              temperature: options.temperature ?? 0.7,
+              num_predict: options.num_predict ?? 500,
+              top_p: options.top_p ?? 0.9,
+            },
+          },
+          { timeout: OLLAMA_TIMEOUT }
+        ),
       {
-        model: OLLAMA_MODEL,
-        messages,
-        stream: false,
-        options: {
-          temperature: options.temperature ?? 0.7,
-          num_predict: options.num_predict ?? 500,
-          top_p: options.top_p ?? 0.9,
-        },
-      },
-      { timeout: OLLAMA_TIMEOUT }
+        timeoutMs: OLLAMA_TIMEOUT,
+        maxRetries: 2,
+        baseDelayMs: 300,
+        maxDelayMs: 3000,
+        maxConcurrent: 20,
+        circuitFailureThreshold: 4,
+        circuitHalfOpenAfterMs: 15000,
+        circuitSuccessThreshold: 2,
+      }
     );
 
     const content = response?.data?.message?.content;
@@ -78,7 +93,20 @@ export async function ollamaPrompt(
  */
 export async function ollamaHealth(): Promise<{ ok: boolean; model: string; detail?: string }> {
   try {
-    const response = await axios.get(`${OLLAMA_URL}/api/tags`, { timeout: 5000 });
+    const response = await reliabilityEngine.execute<any>(
+      'ollama.health',
+      () => axios.get(`${OLLAMA_URL}/api/tags`, { timeout: 5000 }),
+      {
+        timeoutMs: 5000,
+        maxRetries: 1,
+        baseDelayMs: 200,
+        maxDelayMs: 1000,
+        maxConcurrent: 10,
+        circuitFailureThreshold: 3,
+        circuitHalfOpenAfterMs: 10000,
+        circuitSuccessThreshold: 1,
+      }
+    );
     const models = response?.data?.models || [];
     const found = models.some((m: any) => m.name === OLLAMA_MODEL || m.model === OLLAMA_MODEL);
 

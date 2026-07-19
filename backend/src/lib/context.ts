@@ -1,4 +1,3 @@
-import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { PrismaClient } from '@prisma/client';
 import { TokenPayload, verifyToken, extractToken } from './auth';
 

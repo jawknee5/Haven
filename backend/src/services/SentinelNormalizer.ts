@@ -76,7 +76,7 @@ const CivicResourceSchema = z.object({
   available_slots: z.number().min(0).optional(),
   wait_time_days: z.number().min(0).optional(),
   tags: z.array(z.string()).optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export type CivicResource = z.infer<typeof CivicResourceSchema>;
@@ -104,7 +104,7 @@ export class SentinelNormalizer {
 
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const fieldErrors = error.errors.map(
+        const fieldErrors = error.issues.map(
           (err) => `${err.path.join('.')}: ${err.message}`
         );
 
@@ -256,14 +256,14 @@ export class SentinelNormalizer {
    */
   public static validateField(fieldName: string, value: any): { valid: boolean; error?: string } {
     try {
-      const fieldSchema = CivicResourceSchema.pick({ [fieldName as keyof CivicResource]: true });
+      const fieldSchema = CivicResourceSchema.pick({ [fieldName]: true } as any);
       fieldSchema.parse({ [fieldName]: value });
       return { valid: true };
     } catch (error) {
       if (error instanceof z.ZodError) {
         return {
           valid: false,
-          error: error.errors[0]?.message || 'Validation failed',
+          error: error.issues[0]?.message || 'Validation failed',
         };
       }
       return {
